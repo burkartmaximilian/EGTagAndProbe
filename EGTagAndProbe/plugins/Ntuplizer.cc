@@ -20,6 +20,7 @@
 #include <FWCore/Framework/interface/ESHandle.h>
 #include <FWCore/Utilities/interface/InputTag.h>
 #include <DataFormats/PatCandidates/interface/Electron.h>
+#include <DataFormats/PatCandidates/interface/Tau.h>
 #include "FWCore/ServiceRegistry/interface/Service.h"
 #include "FWCore/Common/interface/TriggerNames.h"
 #include "HLTrigger/HLTcore/interface/HLTConfigProvider.h"
@@ -82,9 +83,28 @@ class Ntuplizer : public edm::EDAnalyzer {
         float _eleProbePhi;
         float _eleProbeSclEt;
         int _eleProbeCharge;
-        float _hltPt;
-        float _hltEta;
-        float _hltPhi;
+
+        float _tauProbePt;
+        float _tauProbeEta;
+        float _tauProbePhi;       
+        int _tauProbeCharge;
+        int _tauProbeDM;
+        bool _tauProbeByVLooseIsolationMVArun2v1DBoldDMwLT;
+        bool _tauProbeByLooseIsolationMVArun2v1DBoldDMwLT;
+        bool _tauProbeByMediumIsolationMVArun2v1DBoldDMwLT;
+        bool _tauProbeByTightIsolationMVArun2v1DBoldDMwLT;
+        bool _tauProbeByVTightIsolationMVArun2v1DBoldDMwLT;
+        bool _tauProbeAgainstMuonLoose3;
+        bool _tauProbeAgainstMuonTight3;
+        bool _tauProbeAgainstElectronVLooseMVA6;
+        bool _tauProbeAgainstElectronLooseMVA6;
+        bool _tauProbeAgainstElectronMediumMVA6;
+        bool _tauProbeAgainstElectronTightMVA6;
+        bool _tauProbeAgainstElectronVTightMVA6;
+
+        vector<float> _hltPt;
+        vector<float> _hltEta;
+        vector<float> _hltPhi;
         int _l1tQual;
         float _l1tPt;
         float _l1tEta;
@@ -115,6 +135,7 @@ class Ntuplizer : public edm::EDAnalyzer {
         int _hasL1_iso[100];
 
         edm::EDGetTokenT<edm::View<reco::GsfElectron> >  _electronsTag;
+        edm::EDGetTokenT<pat::TauRefVector>   _tauTag;
         edm::EDGetTokenT<edm::View<reco::GenParticle> > _genParticlesTag;
         edm::EDGetTokenT<edm::ValueMap<bool> > _eleLooseIdMapTag;
         edm::EDGetTokenT<edm::ValueMap<bool> > _eleMediumIdMapTag;
@@ -154,6 +175,7 @@ class Ntuplizer : public edm::EDAnalyzer {
 // ----Constructor and Destructor -----
 Ntuplizer::Ntuplizer(const edm::ParameterSet& iConfig) :
 _electronsTag       (consumes<edm::View<reco::GsfElectron> >                     (iConfig.getParameter<edm::InputTag>("electrons"))),
+_tauTag         (consumes<pat::TauRefVector>                      (iConfig.getParameter<edm::InputTag>("taus"))),
 _genParticlesTag (consumes<edm::View<reco::GenParticle> > (iConfig.getParameter<edm::InputTag>("genParticles"))),
 _eleLooseIdMapTag  (consumes<edm::ValueMap<bool> >(iConfig.getParameter<edm::InputTag>("eleLooseIdMap"))),
 _eleMediumIdMapTag  (consumes<edm::ValueMap<bool> >(iConfig.getParameter<edm::InputTag>("eleMediumIdMap"))),
@@ -163,15 +185,15 @@ _L1EGTag       (consumes<l1t::EGammaBxCollection>                   (iConfig.get
 _L1EmuEGTag    (consumes<l1t::EGammaBxCollection>                   (iConfig.getParameter<edm::InputTag>("L1EmuEG"))),
 _VtxTag         (consumes<std::vector<reco::Vertex>>              (iConfig.getParameter<edm::InputTag>("Vertices")))
 {
-    this -> _treeName = iConfig.getParameter<std::string>("treeName");
-    this -> _processName = iConfig.getParameter<edm::InputTag>("triggerResultsLabel");
-    this -> _useGenMatch = iConfig.getParameter<bool>("useGenMatch");
-    this -> _useHLTMatch = iConfig.getParameter<bool>("useHLTMatch");
+    _treeName = iConfig.getParameter<std::string>("treeName");
+    _processName = iConfig.getParameter<edm::InputTag>("triggerResultsLabel");
+    _useGenMatch = iConfig.getParameter<bool>("useGenMatch");
+    _useHLTMatch = iConfig.getParameter<bool>("useHLTMatch");
 
     TString triggerNameTag;
     edm::Service<TFileService> fs;
-    this -> _triggerNamesTreeTag = fs -> make<TTree>("triggerNamesTag", "triggerNamesTag");
-    this -> _triggerNamesTreeTag -> Branch("triggerNamesTag",&triggerNameTag);
+    _triggerNamesTreeTag = fs -> make<TTree>("triggerNamesTag", "triggerNamesTag");
+    _triggerNamesTreeTag -> Branch("triggerNamesTag",&triggerNameTag);
 
     //Building the trigger arrays
     const std::vector<edm::ParameterSet>& HLTListTag = iConfig.getParameter <std::vector<edm::ParameterSet> > ("triggerListTag");
@@ -183,33 +205,33 @@ _VtxTag         (consumes<std::vector<reco::Vertex>>              (iConfig.getPa
         pSet.hltFilters2 = parameterSet.getParameter<std::vector<std::string> >("path2");
         pSet.leg1 = parameterSet.getParameter<int>("leg1");
         pSet.leg2 = parameterSet.getParameter<int>("leg2");
-        this -> _parametersTag.push_back(pSet);
+        _parametersTag.push_back(pSet);
 
-        this -> _triggerNamesTreeTag -> Fill();
+        _triggerNamesTreeTag -> Fill();
     }
 
 
     TString triggerNameProbe;
-    this -> _triggerNamesTreeProbe = fs -> make<TTree>("triggerNamesProbe", "triggerNamesProbe");
-    this -> _triggerNamesTreeProbe -> Branch("triggerNamesProbe",&triggerNameProbe);
+    _triggerNamesTreeProbe = fs -> make<TTree>("triggerNamesProbe", "triggerNamesProbe");
+    _triggerNamesTreeProbe -> Branch("triggerNamesProbe",&triggerNameProbe);
 
     //Building the trigger arrays
     const std::vector<edm::ParameterSet>& HLTListProbe = iConfig.getParameter <std::vector<edm::ParameterSet> > ("triggerListProbe");
     for (const edm::ParameterSet& parameterSet : HLTListProbe) {
         tParameterSet pSet;
         pSet.hltPath = parameterSet.getParameter<std::string>("HLT");
-        triggerNameTag = pSet.hltPath;
+        triggerNameProbe = pSet.hltPath;
         pSet.hltFilters1 = parameterSet.getParameter<std::vector<std::string> >("path1");
         pSet.hltFilters2 = parameterSet.getParameter<std::vector<std::string> >("path2");
         pSet.leg1 = parameterSet.getParameter<int>("leg1");
         pSet.leg2 = parameterSet.getParameter<int>("leg2");
-        this -> _parametersProbe.push_back(pSet);
+        _parametersProbe.push_back(pSet);
 
-        this -> _triggerNamesTreeProbe -> Fill();
+        _triggerNamesTreeProbe -> Fill();
     }
 
 
-    this -> Initialize();
+    Initialize();
     return;
 }
 
@@ -220,14 +242,14 @@ void Ntuplizer::beginRun(edm::Run const& iRun, edm::EventSetup const& iSetup)
 {
     Bool_t changedConfig = false;
 
-    if(!this -> _hltConfig.init(iRun, iSetup, this -> _processName.process(), changedConfig)){
+    if(!_hltConfig.init(iRun, iSetup, _processName.process(), changedConfig)){
         edm::LogError("HLTMatchingFilter") << "Initialization of HLTConfigProvider failed!!";
         return;
     }
 
-    const edm::TriggerNames::Strings& triggerNames = this -> _hltConfig.triggerNames();
+    const edm::TriggerNames::Strings& triggerNames = _hltConfig.triggerNames();
     //std::cout << " ===== LOOKING FOR THE PATH INDEXES =====" << std::endl;
-    for (tParameterSet& parameter : this -> _parametersTag){
+    for (tParameterSet& parameter : _parametersTag){
         const std::string& hltPath = parameter.hltPath;
         bool found = false;
         for(unsigned int j=0; j < triggerNames.size(); j++)
@@ -244,7 +266,7 @@ void Ntuplizer::beginRun(edm::Run const& iRun, edm::EventSetup const& iSetup)
     }
 
 
-    for (tParameterSet& parameter : this -> _parametersProbe){
+    for (tParameterSet& parameter : _parametersProbe){
         const std::string& hltPath = parameter.hltPath;
         bool found = false;
         for(unsigned int j=0; j < triggerNames.size(); j++)
@@ -263,44 +285,63 @@ void Ntuplizer::beginRun(edm::Run const& iRun, edm::EventSetup const& iSetup)
 }
 
 void Ntuplizer::Initialize() {
-    this -> _indexevents = 0;
-    this -> _runNumber = 0;
-    this -> _lumi = 0;
-    this -> _eleProbePt = -1.;
-    this -> _eleProbeEta = -1.;
-    this -> _eleProbePhi = -1.;
-    this -> _eleProbeSclEt = -1.;
-    this -> _eleProbeCharge = 0;
-    this -> _eleTagPt = -1.;
-    this -> _eleTagEta = -1.;
-    this -> _eleTagPhi = -1.;
-    this -> _eleTagCharge = 0;
-    this -> _Mee = 0;
-    this -> _isTagHLTmatched = false;
-    this -> _isProbeHLTmatched = false;
-    this -> _hltPt = -1;
-    this -> _hltEta = 666;
-    this -> _hltPhi = 666;
-    this -> _l1tPt = -1;
-    this -> _l1tEta = 666;
-    this -> _l1tPhi = 666;
-    this -> _l1tQual = -1;
-    this -> _l1tIso = -1;
-    this -> _l1tEmuPt = -1;
-    this -> _l1tEmuEta = 666;
-    this -> _l1tEmuPhi = 666;
-    this -> _l1tEmuQual = -1;
-    this -> _l1tEmuIso = -1;
-    this -> _l1tEmuNTT = -1;
-    this -> _l1tEmuTowerIEta = -1;
-    this -> _l1tEmuTowerIPhi = -1;
-    this -> _l1tEmuRawEt = -1;
-    this -> _l1tEmuIsoEt = -1;
-    this -> _foundTag = 0;
+    _indexevents = 0;
+    _runNumber = 0;
+    _lumi = 0;
+    _eleProbePt = -1.;
+    _eleProbeEta = -1.;
+    _eleProbePhi = -1.;
+    _eleProbeSclEt = -1.;
+    _eleProbeCharge = 0;
+
+    _tauProbePt = -1.;
+    _tauProbeEta = -1.;
+    _tauProbePhi = -1.;
+    _tauProbeCharge = 0;
+    _tauProbeDM = -1;
+    _tauProbeByVLooseIsolationMVArun2v1DBoldDMwLT = 0;
+    _tauProbeByLooseIsolationMVArun2v1DBoldDMwLT = 0;
+    _tauProbeByMediumIsolationMVArun2v1DBoldDMwLT = 0;
+    _tauProbeByTightIsolationMVArun2v1DBoldDMwLT = 0;
+    _tauProbeByVTightIsolationMVArun2v1DBoldDMwLT = 0;
+    _tauProbeAgainstMuonLoose3 = 0;
+    _tauProbeAgainstMuonTight3 = 0;
+    _tauProbeAgainstElectronVLooseMVA6 = 0;
+    _tauProbeAgainstElectronLooseMVA6 = 0;
+    _tauProbeAgainstElectronMediumMVA6 = 0;
+    _tauProbeAgainstElectronTightMVA6 = 0;
+    _tauProbeAgainstElectronVTightMVA6 = 0;
+
+    _eleTagPt = -1.;
+    _eleTagEta = -1.;
+    _eleTagPhi = -1.;
+    _eleTagCharge = 0;
+    _Mee = 0;
+    _isTagHLTmatched = false;
+    _isProbeHLTmatched = false;    
+    _hltPt.assign(NUMBER_OF_MAXIMUM_TRIGGERS,-1);
+    _hltEta.assign(NUMBER_OF_MAXIMUM_TRIGGERS,666);
+    _hltPhi.assign(NUMBER_OF_MAXIMUM_TRIGGERS,666);
+    _l1tPt = -1;
+    _l1tEta = 666;
+    _l1tPhi = 666;
+    _l1tQual = -1;
+    _l1tIso = -1;
+    _l1tEmuPt = -1;
+    _l1tEmuEta = 666;
+    _l1tEmuPhi = 666;
+    _l1tEmuQual = -1;
+    _l1tEmuIso = -1;
+    _l1tEmuNTT = -1;
+    _l1tEmuTowerIEta = -1;
+    _l1tEmuTowerIPhi = -1;
+    _l1tEmuRawEt = -1;
+    _l1tEmuIsoEt = -1;
+    _foundTag = 0;
 
     for(unsigned int i=0;i<100;i++){
-      this -> _hasL1[i] = -1;
-      this -> _hasL1_iso[i] = -1;
+      _hasL1[i] = -1;
+      _hasL1_iso[i] = -1;
     }
 
 }
@@ -309,55 +350,77 @@ void Ntuplizer::Initialize() {
 void Ntuplizer::beginJob()
 {
     edm::Service<TFileService> fs;
-    this -> _tree = fs -> make<TTree>(this -> _treeName.c_str(), this -> _treeName.c_str());
+    _tree = fs -> make<TTree>(_treeName.c_str(), _treeName.c_str());
 
     //Branches
-    this -> _tree -> Branch("EventNumber",&_indexevents,"EventNumber/l");
-    this -> _tree -> Branch("RunNumber",&_runNumber,"RunNumber/I");
-    this -> _tree -> Branch("lumi",&_lumi,"lumi/I");
-    this -> _tree -> Branch("eleProbeTriggerBits", &_eleProbeTriggerBits, "eleProbeTriggerBits/l");
-    this -> _tree -> Branch("eleTagTriggerBits", &_eleTagTriggerBits, "eleTagTriggerBits/l");
-    this -> _tree -> Branch("eleProbePt",  &_eleProbePt,  "eleProbePt/F");
-    this -> _tree -> Branch("eleProbeEta", &_eleProbeEta, "eleProbeEta/F");
-    this -> _tree -> Branch("eleProbePhi", &_eleProbePhi, "eleProbePhi/F");
-    this -> _tree -> Branch("eleProbeSclEt",  &_eleProbeSclEt,  "eleProbeSclEt/F");
-    this -> _tree -> Branch("eleProbeCharge",  &_eleProbeCharge,  "eleProbeCharge/I");
-    this -> _tree -> Branch("eleTagPt",  &_eleTagPt,  "eleTagPt/F");
-    this -> _tree -> Branch("eleTagEta", &_eleTagEta, "eleTagEta/F");
-    this -> _tree -> Branch("eleTagPhi", &_eleTagPhi, "eleTagPhi/F");
-    this -> _tree -> Branch("eleTagCharge",  &_eleTagCharge,  "eleTagCharge/I");
-    this -> _tree -> Branch("Mee",  &_Mee,  "Mee/F");
-    this -> _tree -> Branch("hltPt",  &_hltPt,  "hltPt/F");
-    this -> _tree -> Branch("hltEta", &_hltEta, "hltEta/F");
-    this -> _tree -> Branch("hltPhi", &_hltPhi, "hltPhi/F");
-    this -> _tree -> Branch("l1tPt",  &_l1tPt,  "l1tPt/F");
-    this -> _tree -> Branch("l1tEta", &_l1tEta, "l1tEta/F");
-    this -> _tree -> Branch("l1tPhi", &_l1tPhi, "l1tPhi/F");
-    this -> _tree -> Branch("l1tQual", &_l1tQual, "l1tQual/I");
-    this -> _tree -> Branch("l1tIso", &_l1tIso, "l1tIso/I");
-    this -> _tree -> Branch("l1tEmuPt",  &_l1tEmuPt,  "l1tEmuPt/F");
-    this -> _tree -> Branch("l1tEmuEta", &_l1tEmuEta, "l1tEmuEta/F");
-    this -> _tree -> Branch("l1tEmuPhi", &_l1tEmuPhi, "l1tEmuPhi/F");
-    this -> _tree -> Branch("l1tEmuQual", &_l1tEmuQual, "l1tEmuQual/I");
-    this -> _tree -> Branch("l1tEmuIso", &_l1tEmuIso, "l1tEmuIso/I");
-    this -> _tree -> Branch("l1tEmuNTT", &_l1tEmuNTT, "l1tEmuNTT/I");
-    this -> _tree -> Branch("l1tEmuTowerIEta", &_l1tEmuTowerIEta, "l1tEmuTowerIEta/I");
-    this -> _tree -> Branch("l1tEmuTowerIPhi", &_l1tEmuTowerIPhi, "l1tEmuTowerIPhi/I");
-    this -> _tree -> Branch("l1tEmuRawEt", &_l1tEmuRawEt, "l1tEmuRawEt/I");
-    this -> _tree -> Branch("l1tEmuIsoEt", &_l1tEmuIsoEt, "l1tEmuIsoEt/I");
+    _tree -> Branch("EventNumber",&_indexevents,"EventNumber/l");
+    _tree -> Branch("RunNumber",&_runNumber,"RunNumber/I");
+    _tree -> Branch("lumi",&_lumi,"lumi/I");
+    _tree -> Branch("eleProbeTriggerBits", &_eleProbeTriggerBits, "eleProbeTriggerBits/l");
+    _tree -> Branch("eleTagTriggerBits", &_eleTagTriggerBits, "eleTagTriggerBits/l");
+
+    _tree -> Branch("eleProbePt",  &_eleProbePt,  "eleProbePt/F");
+    _tree -> Branch("eleProbeEta", &_eleProbeEta, "eleProbeEta/F");
+    _tree -> Branch("eleProbePhi", &_eleProbePhi, "eleProbePhi/F");
+    _tree -> Branch("eleProbeSclEt",  &_eleProbeSclEt,  "eleProbeSclEt/F");
+    _tree -> Branch("eleProbeCharge",  &_eleProbeCharge,  "eleProbeCharge/I");
+
+    _tree -> Branch("tauProbePt",  &_tauProbePt,  "tauProbePt/F");
+    _tree -> Branch("tauProbeEta", &_tauProbeEta, "tauProbeEta/F");
+    _tree -> Branch("tauProbePhi", &_tauProbePhi, "tauProbePhi/F");
+    _tree -> Branch("tauProbeCharge",  &_tauProbeCharge,  "tauProbeCharge/I");
+    _tree -> Branch("tauProbeDM",  &_tauProbeDM,  "tauProbeDM/I");
+    _tree -> Branch("tauProbeByVLooseIsolationMVArun2v1DBoldDMwLT",  &_tauProbeByVLooseIsolationMVArun2v1DBoldDMwLT,  "tauProbeByVLooseIsolationMVArun2v1DBoldDMwLT/O");
+    _tree -> Branch("tauProbeByLooseIsolationMVArun2v1DBoldDMwLT",  &_tauProbeByLooseIsolationMVArun2v1DBoldDMwLT,  "tauProbeByLooseIsolationMVArun2v1DBoldDMwLT/O");
+    _tree -> Branch("tauProbeByMediumIsolationMVArun2v1DBoldDMwLT",  &_tauProbeByMediumIsolationMVArun2v1DBoldDMwLT,  "tauProbeByMediumIsolationMVArun2v1DBoldDMwLT/O");
+    _tree -> Branch("tauProbeByTightIsolationMVArun2v1DBoldDMwLT",  &_tauProbeByTightIsolationMVArun2v1DBoldDMwLT,  "tauProbeByTightIsolationMVArun2v1DBoldDMwLT/O");
+    _tree -> Branch("tauProbeByVTightIsolationMVArun2v1DBoldDMwLT",  &_tauProbeByVTightIsolationMVArun2v1DBoldDMwLT,  "tauProbeByVTightIsolationMVArun2v1DBoldDMwLT/O");
+    _tree -> Branch("tauProbeAgainstMuonLoose3", &_tauProbeAgainstMuonLoose3, "tauProbeAgainstMuonLoose3/F");
+    _tree -> Branch("tauProbeAgainstMuonTight3", &_tauProbeAgainstMuonTight3, "tauProbeAgainstMuonTIght3/F");
+    _tree -> Branch("tauProbeAgainstElectronVLooseMVA6", &_tauProbeAgainstElectronVLooseMVA6, "tauProbeAgainstElectronVLooseMVA6/F");
+    _tree -> Branch("tauProbeAgainstElectronLooseMVA6", &_tauProbeAgainstElectronLooseMVA6, "tauProbeAgainstElectronLooseMVA6/F");
+    _tree -> Branch("tauProbeAgainstElectronMediumMVA6", &_tauProbeAgainstElectronMediumMVA6, "tauProbeAgainstElectronMediumMVA6/F");
+    _tree -> Branch("tauProbeAgainstElectronTightMVA6", &_tauProbeAgainstElectronTightMVA6, "tauProbeAgainstElectronTightMVA6/F");
+    _tree -> Branch("tauProbeAgainstElectronVTightMVA6", &_tauProbeAgainstElectronVTightMVA6, "tauProbeAgainstElectronVTightMVA6/F");
 
 
-    this -> _tree -> Branch("isTagHLTmatched", &_isTagHLTmatched, "isTagHLTmatched/O");
-    this -> _tree -> Branch("isProbeHLTmatched", &_isProbeHLTmatched, "isProbeHLTmatched/O");
-    this -> _tree -> Branch("isOS", &_isOS, "isOS/O");
-    this -> _tree -> Branch("foundTag", &_foundTag, "foundTag/I");
-    this -> _tree -> Branch("Nvtx", &_Nvtx, "Nvtx/I");
+    _tree -> Branch("eleTagPt",  &_eleTagPt,  "eleTagPt/F");
+    _tree -> Branch("eleTagEta", &_eleTagEta, "eleTagEta/F");
+    _tree -> Branch("eleTagPhi", &_eleTagPhi, "eleTagPhi/F");
+    _tree -> Branch("eleTagCharge",  &_eleTagCharge,  "eleTagCharge/I");
+    _tree -> Branch("Mee",  &_Mee,  "Mee/F");
+
+    _tree -> Branch("hltPt",  &_hltPt);
+    _tree -> Branch("hltEta", &_hltEta);
+    _tree -> Branch("hltPhi", &_hltPhi);
+    _tree -> Branch("l1tPt",  &_l1tPt,  "l1tPt/F");
+    _tree -> Branch("l1tEta", &_l1tEta, "l1tEta/F");
+    _tree -> Branch("l1tPhi", &_l1tPhi, "l1tPhi/F");
+    _tree -> Branch("l1tQual", &_l1tQual, "l1tQual/I");
+    _tree -> Branch("l1tIso", &_l1tIso, "l1tIso/I");
+    _tree -> Branch("l1tEmuPt",  &_l1tEmuPt,  "l1tEmuPt/F");
+    _tree -> Branch("l1tEmuEta", &_l1tEmuEta, "l1tEmuEta/F");
+    _tree -> Branch("l1tEmuPhi", &_l1tEmuPhi, "l1tEmuPhi/F");
+    _tree -> Branch("l1tEmuQual", &_l1tEmuQual, "l1tEmuQual/I");
+    _tree -> Branch("l1tEmuIso", &_l1tEmuIso, "l1tEmuIso/I");
+    _tree -> Branch("l1tEmuNTT", &_l1tEmuNTT, "l1tEmuNTT/I");
+    _tree -> Branch("l1tEmuTowerIEta", &_l1tEmuTowerIEta, "l1tEmuTowerIEta/I");
+    _tree -> Branch("l1tEmuTowerIPhi", &_l1tEmuTowerIPhi, "l1tEmuTowerIPhi/I");
+    _tree -> Branch("l1tEmuRawEt", &_l1tEmuRawEt, "l1tEmuRawEt/I");
+    _tree -> Branch("l1tEmuIsoEt", &_l1tEmuIsoEt, "l1tEmuIsoEt/I");
+
+
+    _tree -> Branch("isTagHLTmatched", &_isTagHLTmatched, "isTagHLTmatched/O");
+    _tree -> Branch("isProbeHLTmatched", &_isProbeHLTmatched, "isProbeHLTmatched/O");
+    _tree -> Branch("isOS", &_isOS, "isOS/O");
+    _tree -> Branch("foundTag", &_foundTag, "foundTag/I");
+    _tree -> Branch("Nvtx", &_Nvtx, "Nvtx/I");
 
     for(unsigned int i=0;i<100;i++){  
       TString name = Form("hasL1_%i",i);
-      this -> _tree -> Branch(name,  &_hasL1[i],  name+"/I");
+      _tree -> Branch(name,  &_hasL1[i],  name+"/I");
       TString name_iso = Form("hasL1_iso_%i",i);
-      this -> _tree -> Branch(name_iso,  &_hasL1_iso[i],  name_iso+"/I");
+      _tree -> Branch(name_iso,  &_hasL1_iso[i],  name_iso+"/I");
     }
 
     return;
@@ -378,7 +441,7 @@ void Ntuplizer::endRun(edm::Run const& iRun, edm::EventSetup const& iSetup)
 
 void Ntuplizer::analyze(const edm::Event& iEvent, const edm::EventSetup& eSetup)
 {
-    this -> Initialize();
+    Initialize();
 
     _indexevents = iEvent.id().event();
     _runNumber = iEvent.id().run();
@@ -387,6 +450,7 @@ void Ntuplizer::analyze(const edm::Event& iEvent, const edm::EventSetup& eSetup)
 
     // search for the tag in the event
     edm::Handle<edm::View<reco::GsfElectron> > electrons;
+    edm::Handle<pat::TauRefVector>  taus;
     edm::Handle<edm::View<reco::GenParticle> > genParticles;
     edm::Handle<edm::ValueMap<bool> > loose_id_decisions;
     edm::Handle<edm::ValueMap<bool> > medium_id_decisions;
@@ -394,16 +458,17 @@ void Ntuplizer::analyze(const edm::Event& iEvent, const edm::EventSetup& eSetup)
     edm::Handle<edm::TriggerResults> triggerBits;
     edm::Handle<std::vector<reco::Vertex> >  vertices;
 
-    iEvent.getByToken(this -> _electronsTag, electrons);
-    iEvent.getByToken(this -> _eleLooseIdMapTag, loose_id_decisions);
-    iEvent.getByToken(this -> _eleMediumIdMapTag, medium_id_decisions);
-    if(this->_useHLTMatch)
-      iEvent.getByToken(this -> _triggerObjects, triggerObjects);
-    iEvent.getByToken(this -> _triggerBits, triggerBits);
-    iEvent.getByToken(this -> _VtxTag,vertices);
+    iEvent.getByToken(_electronsTag, electrons);
+    iEvent.getByToken(_tauTag, taus);
+    iEvent.getByToken(_eleLooseIdMapTag, loose_id_decisions);
+    iEvent.getByToken(_eleMediumIdMapTag, medium_id_decisions);
+    if(_useHLTMatch)
+      iEvent.getByToken(_triggerObjects, triggerObjects);
+    iEvent.getByToken(_triggerBits, triggerBits);
+    iEvent.getByToken(_VtxTag,vertices);
 
-    if(this->_useGenMatch)
-      iEvent.getByToken(this -> _genParticlesTag, genParticles);
+    if(_useGenMatch)
+      iEvent.getByToken(_genParticlesTag, genParticles);
 
 
     const edm::TriggerNames &names = iEvent.triggerNames(*triggerBits);
@@ -430,26 +495,26 @@ void Ntuplizer::analyze(const edm::Event& iEvent, const edm::EventSetup& eSetup)
 	float Mee = (eleTag->p4() + eleProbe->p4()).M();
 	if(!(Mee>60 && Mee<120)) continue;
 
-	if(this->_useGenMatch){
+	if(_useGenMatch){
 	  if(!matchToTruth(eleProbe,genParticles))
 	    continue;
 	}
 
 
-	this -> _isOS = isOS;
-	this -> _Mee = Mee;
+	_isOS = isOS;
+	_Mee = Mee;
 
 	//! TagAndProbe on HLT eles
 
-	this -> _eleProbeTriggerBitSet.reset();
-	this -> _eleTagTriggerBitSet.reset();
+	_eleProbeTriggerBitSet.reset();
+	_eleTagTriggerBitSet.reset();
 
 	if(_useHLTMatch){
 
 	  for (pat::TriggerObjectStandAlone  obj : *triggerObjects)
 	    {
 
-	      if(!obj.hasCollection("hltEgammaCandidates::HLT")) continue;
+	      //if(!obj.hasCollection("hltEgammaCandidates::HLT")) continue;
 	      
 	      const float dR_tag = deltaR (*eleTag, obj);
 	      if ( dR_tag < 0.3)
@@ -463,29 +528,24 @@ void Ntuplizer::analyze(const edm::Event& iEvent, const edm::EventSetup& eSetup)
 		  unsigned int x = 0;
 		  bool foundTrigger = false;	
 
-		  for (const tParameterSet& parameter : this -> _parametersTag)
+		  for (const tParameterSet& parameter : _parametersTag)
 		    {
 		      if ((parameter.hltPathIndex >= 0)&&(obj.hasPathName(triggerNames[parameter.hltPathIndex], true, false)))
 			{
-			  foundTrigger = true;
-			  //Path found, now looking for the label 1, if present in the parameter set
-			  //std::cout << "==== FOUND PATH " << triggerNames[parameter.hltPathIndex] << " ====" << std::endl;
+			  foundTrigger = true;			  
 			  //Retrieving filter list for the event
 			  const std::vector<std::string>& filters = (parameter.hltFilters1);
-			  if (this -> hasFilters(obj, filters))
+			  if (hasFilters(obj, filters))
 			    {
-			      //std::cout << "#### FOUND ELE WITH HLT PATH " << x << " ####" << std::endl;
-			      this -> _hltPt = obj.pt();
-			      this -> _hltEta = obj.eta();
-			      this -> _hltPhi = obj.phi();			    this -> _eleTagTriggerBitSet[x] = true;			    
-			      //std::cout << this -> _eleTagTriggerBitSet.to_string() << std::endl;
+			      //std::cout << "#### FOUND ELE WITH HLT PATH " << x << " ####" << std::endl;			     
+			      _eleTagTriggerBitSet[x] = true;			      
 			    }
 			}
 		      x++;
 		    }
 		  if (foundTrigger){
-		    this -> _isTagHLTmatched = true;
-		    this -> _foundTag++;
+		    _isTagHLTmatched = true;
+		    _foundTag++;
 		  }
 		}
 	      
@@ -493,38 +553,72 @@ void Ntuplizer::analyze(const edm::Event& iEvent, const edm::EventSetup& eSetup)
 	      const float dR_probe = deltaR (*eleProbe, obj);
 	      if ( dR_probe < 0.3)
 		{
-		  this -> _isProbeHLTmatched = true;
+		  _isProbeHLTmatched = true;
 		  
 		  obj.unpackPathNames(names);
 		  const edm::TriggerNames::Strings& triggerNames = names.triggerNames();
 		  //Looking for the path
 		  unsigned int x = 0;
 		  bool foundTrigger = false;
-		  for (const tParameterSet& parameter : this -> _parametersProbe)
+		  for (const tParameterSet& parameter : _parametersProbe)
 		    {
 		      if ((parameter.hltPathIndex >= 0)&&(obj.hasPathName(triggerNames[parameter.hltPathIndex], true, false)))
 			{
 			  foundTrigger = true;			  
 			  const std::vector<std::string>& filters = (parameter.hltFilters1);
-			  if (this -> hasFilters(obj, filters))
+			  if (hasFilters(obj, filters))
 			  {
 			    //std::cout << "#### FOUND ELE WITH HLT PATH " << x << " ####" << std::endl;
-			    this -> _hltPt = obj.pt();
-			    this -> _hltEta = obj.eta();
-			    this -> _hltPhi = obj.phi();
-			    this -> _eleProbeTriggerBitSet[x] = true;
+			    _hltPt[x] = obj.pt();
+			    _hltEta[x] = obj.eta();
+			    _hltPhi[x] = obj.phi();
+			    _eleProbeTriggerBitSet[x] = true;
 			  }
 		      }
 		    x++;
 		  }
-		if (foundTrigger) this -> _isProbeHLTmatched = true;
+		if (foundTrigger) _isProbeHLTmatched = true;
 	      }
 
 	    }
 
-	  if(!(this -> _isTagHLTmatched)) continue;
+	  if(!(_isTagHLTmatched)) continue;
 
 	}      
+
+
+	// Tau matching
+	
+	for (pat::TauRef  tau : *taus){
+
+	  const float dR = deltaR(*eleProbe,*tau);
+	  if( dR<0.3 ){
+	    
+	    _tauProbePt = tau->pt();
+	    _tauProbeEta = tau->eta();
+	    _tauProbePhi = tau->phi();
+	    _tauProbeCharge = tau->charge();
+	    _tauProbeDM = tau->decayMode();
+	    _tauProbeByVLooseIsolationMVArun2v1DBoldDMwLT = tau->tauID("byVLooseIsolationMVArun2v1DBoldDMwLT");
+	    _tauProbeByLooseIsolationMVArun2v1DBoldDMwLT = tau->tauID("byLooseIsolationMVArun2v1DBoldDMwLT");
+	    _tauProbeByMediumIsolationMVArun2v1DBoldDMwLT = tau->tauID("byMediumIsolationMVArun2v1DBoldDMwLT");
+	    _tauProbeByTightIsolationMVArun2v1DBoldDMwLT = tau->tauID("byTightIsolationMVArun2v1DBoldDMwLT");
+	    _tauProbeByVTightIsolationMVArun2v1DBoldDMwLT = tau->tauID("byVTightIsolationMVArun2v1DBoldDMwLT");	    
+	    _tauProbeAgainstMuonLoose3 = tau->tauID("againstMuonLoose3");
+	    _tauProbeAgainstMuonTight3 = tau->tauID("againstMuonTight3");
+	    _tauProbeAgainstElectronVLooseMVA6 = tau->tauID("againstElectronVLooseMVA6");
+	    _tauProbeAgainstElectronLooseMVA6 = tau->tauID("againstElectronLooseMVA6");
+	    _tauProbeAgainstElectronMediumMVA6 = tau->tauID("againstElectronMediumMVA6");
+	    _tauProbeAgainstElectronTightMVA6 = tau->tauID("againstElectronTightMVA6");
+	    _tauProbeAgainstElectronVTightMVA6 = tau->tauID("againstElectronVTightMVA6");
+
+	  }
+
+	}
+
+
+
+
 
 	//! TagAndProbe on L1T EG
 
@@ -536,24 +630,22 @@ void Ntuplizer::analyze(const edm::Event& iEvent, const edm::EventSetup& eSetup)
 	for (l1t::EGammaBxCollection::const_iterator bx0EGIt = L1EGHandle->begin(0); bx0EGIt != L1EGHandle->end(0) ; bx0EGIt++)
 	  {
 	    const float dR = deltaR(*eleProbe, *bx0EGIt);
-	    const l1t::EGamma& l1tEG = *bx0EGIt;
-
-	    cout<<"FW EG, pT = "<<l1tEG.pt()<<", eta = "<<l1tEG.eta()<<", phi = "<<l1tEG.phi()<<endl;
+	    const l1t::EGamma& l1tEG = *bx0EGIt;	   
 
 	    if (dR < minDR) //Uncomment for new match algo
 	      {
 		minDR = dR; //Uncomment for new match algo
-		this -> _l1tPt = l1tEG.pt();
-		this -> _l1tEta = l1tEG.eta();
-		this -> _l1tPhi = l1tEG.phi();
-		this -> _l1tIso = l1tEG.hwIso();
-		this -> _l1tQual = l1tEG.hwQual();
+		_l1tPt = l1tEG.pt();
+		_l1tEta = l1tEG.eta();
+		_l1tPhi = l1tEG.phi();
+		_l1tIso = l1tEG.hwIso();
+		_l1tQual = l1tEG.hwQual();
 	      }
 	  }
 
 	for(unsigned int i=0;i<100;i++){
-	  this -> _hasL1[i] = (this -> _l1tPt)>=i;
-	  this -> _hasL1_iso[i] = ((this -> _l1tIso) && (this -> _l1tPt)>=i);
+	  _hasL1[i] = (_l1tPt)>=i;
+	  _hasL1_iso[i] = ((_l1tIso) && (_l1tPt)>=i);
 	}
 
 	edm::Handle< BXVector<l1t::EGamma> >  L1EmuEGHandle;
@@ -573,40 +665,40 @@ void Ntuplizer::analyze(const edm::Event& iEvent, const edm::EventSetup& eSetup)
 		if (dR < minDR) //Uncomment for new match algo
 		  {
 		    minDR = dR; //Uncomment for new match algo
-		    this -> _l1tEmuPt        = l1tEmuEG.pt();
-		    this -> _l1tEmuEta       = l1tEmuEG.eta();
-		    this -> _l1tEmuPhi       = l1tEmuEG.phi();
-		    this -> _l1tEmuIso       = l1tEmuEG.hwIso();
-		    this -> _l1tEmuNTT       = l1tEmuEG.nTT();
-		    this -> _l1tEmuQual      = l1tEmuEG.hwQual();
-		    this -> _l1tEmuTowerIEta = l1tEmuEG.towerIEta();
-		    this -> _l1tEmuTowerIPhi = l1tEmuEG.towerIPhi();
-		    this -> _l1tEmuRawEt     = l1tEmuEG.rawEt();
-		    this -> _l1tEmuIsoEt     = l1tEmuEG.isoEt();
+		    _l1tEmuPt        = l1tEmuEG.pt();
+		    _l1tEmuEta       = l1tEmuEG.eta();
+		    _l1tEmuPhi       = l1tEmuEG.phi();
+		    _l1tEmuIso       = l1tEmuEG.hwIso();
+		    _l1tEmuNTT       = l1tEmuEG.nTT();
+		    _l1tEmuQual      = l1tEmuEG.hwQual();
+		    _l1tEmuTowerIEta = l1tEmuEG.towerIEta();
+		    _l1tEmuTowerIPhi = l1tEmuEG.towerIPhi();
+		    _l1tEmuRawEt     = l1tEmuEG.rawEt();
+		    _l1tEmuIsoEt     = l1tEmuEG.isoEt();
 		    
 		  }
 	      }
 	  }
 	
-	this -> _eleProbePt = eleProbe->pt();
-	this -> _eleProbeEta = eleProbe->eta();
-	this -> _eleProbePhi = eleProbe->phi();
-	this -> _eleProbeSclEt = (eleProbe->superCluster()->energy()) / cosh(eleProbe->superCluster()->eta()) ;
-	this -> _eleProbeCharge = eleProbe->charge();
+	_eleProbePt = eleProbe->pt();
+	_eleProbeEta = eleProbe->eta();
+	_eleProbePhi = eleProbe->phi();
+	_eleProbeSclEt = (eleProbe->superCluster()->energy()) / cosh(eleProbe->superCluster()->eta()) ;
+	_eleProbeCharge = eleProbe->charge();
 
 
-	this -> _eleTagPt = eleTag->pt();
-	this -> _eleTagEta = eleTag->eta();
-	this -> _eleTagPhi = eleTag->phi();
-	this -> _eleTagCharge = eleTag->charge();
+	_eleTagPt = eleTag->pt();
+	_eleTagEta = eleTag->eta();
+	_eleTagPhi = eleTag->phi();
+	_eleTagCharge = eleTag->charge();
 
-	this -> _Nvtx = vertices->size();
+	_Nvtx = vertices->size();
 
  
-	this -> _eleProbeTriggerBits = this -> _eleProbeTriggerBitSet.to_ulong();
-	this -> _eleTagTriggerBits = this -> _eleTagTriggerBitSet.to_ulong();
+	_eleProbeTriggerBits = _eleProbeTriggerBitSet.to_ulong();
+	_eleTagTriggerBits = _eleTagTriggerBitSet.to_ulong();
 	//std::cout << "++++++++++ FILL ++++++++++" << std::endl;
-	this -> _tree -> Fill();
+	_tree -> Fill();
 
       }
 

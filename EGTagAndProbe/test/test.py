@@ -3,8 +3,8 @@ import FWCore.PythonUtilities.LumiList as LumiList
 import FWCore.ParameterSet.Config as cms
 process = cms.Process("TagAndProbe")
 
-isMC = True
-isMINIAOD = False
+isMC = False
+isMINIAOD = True
 
 process.load("Configuration.StandardSequences.FrontierConditions_GlobalTag_cff")
 process.load("Configuration.StandardSequences.GeometryRecoDB_cff")
@@ -93,26 +93,23 @@ process.electrons = cms.Sequence(getattr(process,mvaMod)*getattr(process,egmMod)
 
 if not isMC: # will use 80X
     from Configuration.AlCa.autoCond import autoCond
-    process.GlobalTag.globaltag = '80X_dataRun2_Prompt_v8'
+    process.GlobalTag.globaltag = '94X_dataRun2_v6'
     process.load('EGTagAndProbe.EGTagAndProbe.tagAndProbe_cff')
     process.source = cms.Source("PoolSource",
         fileNames = cms.untracked.vstring(
-            '/store/data/Run2016H/SingleElectron/MINIAOD/PromptReco-v2/000/281/693/00000/047717DF-5B86-E611-B59B-02163E01457D.root'            
+            '/store/data/Run2017F/SingleElectron/MINIAOD/17Nov2017-v1/50000/0014F790-FDE0-E711-A3E0-FA163E1B87FE.root'            
         ),
     )
 
 
 else:
-    process.GlobalTag.globaltag = '90X_mcRun2_asymptotic_v0'
+    process.GlobalTag.globaltag = '94X_mc2017_realistic_v14'
     process.load('EGTagAndProbe.EGTagAndProbe.MCanalysis_cff')
     process.source = cms.Source("PoolSource",
         fileNames = cms.untracked.vstring(            
-            #'/store/mc/RunIISummer16MiniAODv2/DYJetsToLL_M-50_TuneCUETP8M1_13TeV-madgraphMLM-pythia8/MINIAODSIM/PUMoriond17_80X_mcRun2_asymptotic_2016_TrancheIV_v6_ext1-v2/120000/02A210D6-F5C3-E611-B570-008CFA197BD4.root'      
-            '/store/mc/RunIISummer16DR80/DYJetsToLL_M-50_TuneCUETP8M1_13TeV-madgraphMLM-pythia8/RAWAODSIM/FlatPU28to62HcalNZSRAWAODSIM_80X_mcRun2_asymptotic_2016_TrancheIV_v6_ext1-v2/110000/005BFB99-EBA9-E611-8850-0CC47A4D762A.root'
+	    '/store/mc/RunIIFall17MiniAOD/DYJetsToLL_M-50_TuneCP5_13TeV-amcatnloFXFX-pythia8/MINIAODSIM/94X_mc2017_realistic_v10-v1/00000/005DC030-D3F4-E711-889A-02163E01A62D.root'
         )
     )
-    process.Ntuplizer.useHLTMatch = cms.bool(False) #In case no HLT object in MC sample considered or you're fed up with trying to find the right HLT collections
-
 
 
 if isMINIAOD:
@@ -130,7 +127,7 @@ if options.inputFiles:
     process.source.fileNames = cms.untracked.vstring(options.inputFiles)
 
 process.maxEvents = cms.untracked.PSet(
-    input = cms.untracked.int32(-1)
+    input = cms.untracked.int32(10000)
 )
 
 if options.maxEvents >= -1:
