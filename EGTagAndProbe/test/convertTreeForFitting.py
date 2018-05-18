@@ -4,18 +4,18 @@ import numpy as n
 # the hadd of all the output ntuples
 #fname = 'NTuple_10Ago_Riccardo.root'
 #fname = 'Ntuple_FullH.root'
-fname = "Ntuples_141116/Option22/Ntuple_Option22_2016.root"
+fname = "/storage/9/mburkart/Ntuplizer_SingleTau/NTuple_DYJetsToLLM50EG_v3.root"
 #fname = "Ntuples_141116/Option21/Ntuple_Option21_2016.root"
 #pt = [20, 26, 30, 34]
 pt = [20, 26, 30, 34]
 numberOfHLTTriggers = 6
 
-saveOnlyOS = False # False; save only OS, True: save both and store weight for bkg sub
+saveOnlyOS = True # True; save only OS, False: save both and store weight for bkg sub
 
 #######################################################
 fIn = TFile.Open(fname)
 tIn = fIn.Get('Ntuplizer/TagAndProbe')
-tTriggerNames = fIn.Get("Ntuplizer/triggerNames")
+tTriggerNames = fIn.Get("Ntuplizer/triggerNamesProbe")
 outname = fname.replace ('.root', '_forFit.root')
 fOut = TFile (outname, 'recreate')
 tOut = tIn.CloneTree(0)
@@ -47,11 +47,14 @@ for ev in range (0, nentries):
     tIn.GetEntry(ev)
     if (ev%10000 == 0) : print ev, "/", nentries
 
-    if abs(tIn.tauEta) > 2.1:
+    if abs(tIn.tauProbeEta) > 2.1:
         continue
 
     if saveOnlyOS and not tIn.isOS:
         continue
+    
+    if tIn.tauProbePt < 0.:
+	continue
 
     for i in range (0, len(pt)):
         briso[i][0] = 0
@@ -71,7 +74,7 @@ for ev in range (0, nentries):
             if L1iso:
                 briso[i][0] = 1
 
-    triggerBits = tIn.tauTriggerBits
+    triggerBits = tIn.eleProbeTriggerBits
     HLTpt = tIn.hltPt
     for bitIndex in range(0, numberOfHLTTriggers):
         if ((triggerBits >> bitIndex) & 1) == 1:
