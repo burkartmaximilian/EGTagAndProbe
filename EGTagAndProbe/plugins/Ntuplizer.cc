@@ -588,12 +588,12 @@ void Ntuplizer::analyze(const edm::Event& iEvent, const edm::EventSetup& eSetup)
 
 
 	// Tau matching
-	
+	bool foundTau = false;
 	for (pat::TauRef  tau : *taus){
 
 	  const float dR = deltaR(*eleProbe,*tau);
 	  if( dR<0.3 ){
-	    
+              foundTau = true;
 	    _tauProbePt = tau->pt();
 	    _tauProbeEta = tau->eta();
 	    _tauProbePhi = tau->phi();
@@ -611,10 +611,23 @@ void Ntuplizer::analyze(const edm::Event& iEvent, const edm::EventSetup& eSetup)
 	    _tauProbeAgainstElectronMediumMVA6 = tau->tauID("againstElectronMediumMVA6");
 	    _tauProbeAgainstElectronTightMVA6 = tau->tauID("againstElectronTightMVA6");
 	    _tauProbeAgainstElectronVTightMVA6 = tau->tauID("againstElectronVTightMVA6");
+	    //if(_isProbeHLTmatched)
+            //{
+                //std::cout << "Tag number:" << i << std::endl;
+                //std::cout << "Probe number:" << j << std::endl;
+                //std::cout << "Electron pT:" << eleProbe->pt() << std::endl;
+                //std::cout << "Tau pT:" << _tauProbePt << std::endl;
+            //}
+            break;
 
 	  }
 
 	}
+        //std::cout << foundTau << std::endl;
+        if(!foundTau)
+        {
+            continue;
+        }
 
 
 
