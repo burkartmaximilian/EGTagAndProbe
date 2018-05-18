@@ -1,0 +1,20 @@
+OutputFile: results/fitOutput_DYJetsToLL_v3.root
+NCPU: 4
+NoFit: true
+
+Turnon.N: 1
+
+
+Turnon.1.Name: HLT_MediumChargedIsoPFTau180HighPtRelaxedIso_Trk50_eta2p1_v
+Turnon.1.File: /storage/9/mburkart/Ntuplizer_SingleTau/NTuple_DYJetsToLLM50EG_v3_forFit.root
+Turnon.1.Tree: TagAndProbe
+Turnon.1.XVar: tauProbePt
+Turnon.1.Cut: hasHLTPath_0
+Turnon.1.Binning: 80 90 100 110 120 130 140 150 170 190 220 280 400 650 1000 5000
+Turnon.1.FitRange: 80 5000
+Turnon.1.CB.Max: 1. 0.6 1.
+Turnon.1.CB.Alpha: 2.69 0.01 8.
+Turnon.1.CB.N: 2.45 1.1 35.
+Turnon.1.CB.Mean: 35. 0. 120.
+Turnon.1.CB.Sigma: 1. 0.01 5
+
