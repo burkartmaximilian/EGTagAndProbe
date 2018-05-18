@@ -3,7 +3,7 @@ import FWCore.PythonUtilities.LumiList as LumiList
 import FWCore.ParameterSet.Config as cms
 process = cms.Process("TagAndProbe")
 
-isMC = False
+isMC = True
 isMINIAOD = True
 
 process.load("Configuration.StandardSequences.FrontierConditions_GlobalTag_cff")
@@ -23,7 +23,7 @@ options.register ('JSONfile',
                   VarParsing.VarParsing.multiplicity.singleton, # singleton or list
                   VarParsing.VarParsing.varType.string,          # string, int, or float
                   "JSON file (empty for no JSON)")
-options.outputFile = 'NTuple.root'
+options.outputFile = 'NTuple_MC.root'
 options.inputFiles = []
 options.maxEvents  = -999
 options.parseArguments()
@@ -99,7 +99,8 @@ else:
     process.load('EGTagAndProbe.EGTagAndProbe.MCanalysis_cff')
     process.source = cms.Source("PoolSource",
         fileNames = cms.untracked.vstring(            
-	    '/store/mc/RunIIFall17MiniAOD/DYJetsToLL_M-50_TuneCP5_13TeV-amcatnloFXFX-pythia8/MINIAODSIM/94X_mc2017_realistic_v10-v1/00000/005DC030-D3F4-E711-889A-02163E01A62D.root'
+	    #'/store/mc/RunIIFall17MiniAOD/DYJetsToLL_M-50_TuneCP5_13TeV-amcatnloFXFX-pythia8/MINIAODSIM/94X_mc2017_realistic_v10-v1/00000/005DC030-D3F4-E711-889A-02163E01A62D.root'
+            'file:/portal/ekpbms1/home/mburkart/workdir/CMSSW_9_4_6_patch1/src/pickevents_merged.root'
         )
     )
 
