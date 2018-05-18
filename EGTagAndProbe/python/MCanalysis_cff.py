@@ -1,5 +1,5 @@
 import FWCore.ParameterSet.Config as cms
-
+print "Running on MC"
 
 HLTLISTTAG = cms.VPSet(
     cms.PSet (
@@ -19,20 +19,6 @@ HLTLISTTAG = cms.VPSet(
 )
 
 HLTLISTPROBE = cms.VPSet(
-    cms.PSet (
-        HLT = cms.string("HLT_Ele32_WPTight_Gsf_v"),
-        path1 = cms.vstring ("hltEle32WPTightGsfTrackIsoFilter"), #FIXME: to check
-        path2 = cms.vstring (""),
-        leg1 = cms.int32(11),
-        leg2 = cms.int32(999)
-        ),
-    cms.PSet (
-        HLT = cms.string("HLT_Ele35_WPTight_Gsf_v"),
-        path1 = cms.vstring ("hltEle35noerWPTightGsfTrackIsoFilter"), #FIXME: to check
-        path2 = cms.vstring (""),
-        leg1 = cms.int32(11),
-        leg2 = cms.int32(999)
-        ),
     cms.PSet (
         HLT = cms.string("HLT_MediumChargedIsoPFTau180HighPtRelaxedIso_Trk50_eta2p1_v"),
         path1 = cms.vstring ("hltSelectedPFTau180MediumChargedIsolationL1HLTMatched"),
