@@ -120,11 +120,11 @@ void TurnonFit::fit()
     vector<RooRealVar> weightVars;
     //m_selection = "tauPt>250";
 
-    RooRealVar rv1("l1tPt","l1tPt",0.);
-    RooRealVar rv2("l1tIso","l1tIso",0.);
-    argSet.add(rv1);
-    argSet.add(rv2);
-    argSet.Print();
+    //RooRealVar rv1("l1tPt","l1tPt",0.);
+    //RooRealVar rv2("l1tIso","l1tIso",0.);
+    //argSet.add(rv1);
+    //argSet.add(rv2);
+    //argSet.Print();
 
 
     if(m_selection=="")
