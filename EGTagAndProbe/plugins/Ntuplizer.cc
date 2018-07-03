@@ -89,11 +89,12 @@ class Ntuplizer : public edm::EDAnalyzer {
         float _tauProbePhi;       
         int _tauProbeCharge;
         int _tauProbeDM;
-        bool _tauProbeByVLooseIsolationMVArun2v1DBoldDMwLT;
-        bool _tauProbeByLooseIsolationMVArun2v1DBoldDMwLT;
-        bool _tauProbeByMediumIsolationMVArun2v1DBoldDMwLT;
-        bool _tauProbeByTightIsolationMVArun2v1DBoldDMwLT;
-        bool _tauProbeByVTightIsolationMVArun2v1DBoldDMwLT;
+        float tauTrkPt_;
+        bool _tauProbeByVLooseIsolationMVArun2017v2DBoldDMwLT2017;
+        bool _tauProbeByLooseIsolationMVArun2017v2DBoldDMwLT2017;
+        bool _tauProbeByMediumIsolationMVArun2017v2DBoldDMwLT2017;
+        bool _tauProbeByTightIsolationMVArun2017v2DBoldDMwLT2017;
+        bool _tauProbeByVTightIsolationMVArun2017v2DBoldDMwLT2017;
         bool _tauProbeAgainstMuonLoose3;
         bool _tauProbeAgainstMuonTight3;
         bool _tauProbeAgainstElectronVLooseMVA6;
@@ -161,6 +162,13 @@ class Ntuplizer : public edm::EDAnalyzer {
 
         HLTConfigProvider _hltConfig;
 
+        UInt_t lastFilter_;
+        std::vector <std::string> triggerModules_;
+        TString filterLabel_;
+        TTree* filterLabelsTree_;
+        std::string filterPath_;
+        unsigned int lastFilterInd_;
+
 
 };
 
@@ -183,7 +191,8 @@ _triggerObjects (consumes<pat::TriggerObjectStandAloneCollection> (iConfig.getPa
 _triggerBits    (consumes<edm::TriggerResults>                    (iConfig.getParameter<edm::InputTag>("triggerResultsLabel"))),
 _L1EGTag       (consumes<l1t::EGammaBxCollection>                   (iConfig.getParameter<edm::InputTag>("L1EG"))),
 _L1EmuEGTag    (consumes<l1t::EGammaBxCollection>                   (iConfig.getParameter<edm::InputTag>("L1EmuEG"))),
-_VtxTag         (consumes<std::vector<reco::Vertex>>              (iConfig.getParameter<edm::InputTag>("Vertices")))
+_VtxTag         (consumes<std::vector<reco::Vertex>>              (iConfig.getParameter<edm::InputTag>("Vertices"))),
+filterPath_                                                       (iConfig.getParameter<std::string>("filterPath"))
 {
     _treeName = iConfig.getParameter<std::string>("treeName");
     _processName = iConfig.getParameter<edm::InputTag>("triggerResultsLabel");
@@ -194,6 +203,9 @@ _VtxTag         (consumes<std::vector<reco::Vertex>>              (iConfig.getPa
     edm::Service<TFileService> fs;
     _triggerNamesTreeTag = fs -> make<TTree>("triggerNamesTag", "triggerNamesTag");
     _triggerNamesTreeTag -> Branch("triggerNamesTag",&triggerNameTag);
+
+    filterLabelsTree_ = fs -> make<TTree>("filterLabels", "filterLabels");
+    filterLabelsTree_ -> Branch("filterLabels", &filterLabel_);
 
     //Building the trigger arrays
     const std::vector<edm::ParameterSet>& HLTListTag = iConfig.getParameter <std::vector<edm::ParameterSet> > ("triggerListTag");
@@ -259,7 +271,7 @@ void Ntuplizer::beginRun(edm::Run const& iRun, edm::EventSetup const& iSetup)
                 found = true;
                 parameter.hltPathIndex = j;
 
-                //std::cout << "### FOUND AT INDEX #" << j << " --> " << triggerNames[j] << std::endl;
+                std::cout << "### FOUND AT INDEX #" << j << " --> " << triggerNames[j] << std::endl;
             }
         }
         if (!found) parameter.hltPathIndex = -1;
@@ -276,11 +288,29 @@ void Ntuplizer::beginRun(edm::Run const& iRun, edm::EventSetup const& iSetup)
                 found = true;
                 parameter.hltPathIndex = j;
 
-                //std::cout << "### FOUND AT INDEX #" << j << " --> " << triggerNames[j] << std::endl;
+                std::cout << "### FOUND AT INDEX #" << j << " --> " << triggerNames[j] << std::endl;
+                // Look for the trigger filters running in this configuration.
+                if (hltPath==filterPath_)
+                {
+                    std::cout << hltPath << std::endl;
+                    lastFilterInd_ = j;
+                    filterPath_.push_back('*');
+                }
             }
         }
         if (!found) parameter.hltPathIndex = -1;
     }
+
+    // Get trigger modules which ran with saveTags option, e.g. important EDFilters
+    triggerModules_= _hltConfig.saveTagsModules(lastFilterInd_);
+    std::cout << "Trigger modules with saved tags:" << std::endl;
+    for (const std::string triggerModule: triggerModules_)
+    {
+        std::cout << triggerModule << "   ";
+        filterLabel_ = triggerModule;
+        filterLabelsTree_->Fill();
+    }
+    std::cout << std::endl;
 
 }
 
@@ -299,11 +329,12 @@ void Ntuplizer::Initialize() {
     _tauProbePhi = -1.;
     _tauProbeCharge = 0;
     _tauProbeDM = -1;
-    _tauProbeByVLooseIsolationMVArun2v1DBoldDMwLT = 0;
-    _tauProbeByLooseIsolationMVArun2v1DBoldDMwLT = 0;
-    _tauProbeByMediumIsolationMVArun2v1DBoldDMwLT = 0;
-    _tauProbeByTightIsolationMVArun2v1DBoldDMwLT = 0;
-    _tauProbeByVTightIsolationMVArun2v1DBoldDMwLT = 0;
+    tauTrkPt_ = -1;
+    _tauProbeByVLooseIsolationMVArun2017v2DBoldDMwLT2017 = 0;
+    _tauProbeByLooseIsolationMVArun2017v2DBoldDMwLT2017 = 0;
+    _tauProbeByMediumIsolationMVArun2017v2DBoldDMwLT2017 = 0;
+    _tauProbeByTightIsolationMVArun2017v2DBoldDMwLT2017 = 0;
+    _tauProbeByVTightIsolationMVArun2017v2DBoldDMwLT2017 = 0;
     _tauProbeAgainstMuonLoose3 = 0;
     _tauProbeAgainstMuonTight3 = 0;
     _tauProbeAgainstElectronVLooseMVA6 = 0;
@@ -343,6 +374,7 @@ void Ntuplizer::Initialize() {
       _hasL1[i] = -1;
       _hasL1_iso[i] = -1;
     }
+    lastFilter_ = 0;
 
 }
 
@@ -370,11 +402,12 @@ void Ntuplizer::beginJob()
     _tree -> Branch("tauProbePhi", &_tauProbePhi, "tauProbePhi/F");
     _tree -> Branch("tauProbeCharge",  &_tauProbeCharge,  "tauProbeCharge/I");
     _tree -> Branch("tauProbeDM",  &_tauProbeDM,  "tauProbeDM/I");
-    _tree -> Branch("tauProbeByVLooseIsolationMVArun2v1DBoldDMwLT",  &_tauProbeByVLooseIsolationMVArun2v1DBoldDMwLT,  "tauProbeByVLooseIsolationMVArun2v1DBoldDMwLT/O");
-    _tree -> Branch("tauProbeByLooseIsolationMVArun2v1DBoldDMwLT",  &_tauProbeByLooseIsolationMVArun2v1DBoldDMwLT,  "tauProbeByLooseIsolationMVArun2v1DBoldDMwLT/O");
-    _tree -> Branch("tauProbeByMediumIsolationMVArun2v1DBoldDMwLT",  &_tauProbeByMediumIsolationMVArun2v1DBoldDMwLT,  "tauProbeByMediumIsolationMVArun2v1DBoldDMwLT/O");
-    _tree -> Branch("tauProbeByTightIsolationMVArun2v1DBoldDMwLT",  &_tauProbeByTightIsolationMVArun2v1DBoldDMwLT,  "tauProbeByTightIsolationMVArun2v1DBoldDMwLT/O");
-    _tree -> Branch("tauProbeByVTightIsolationMVArun2v1DBoldDMwLT",  &_tauProbeByVTightIsolationMVArun2v1DBoldDMwLT,  "tauProbeByVTightIsolationMVArun2v1DBoldDMwLT/O");
+    _tree -> Branch("tauTrkPt", &tauTrkPt_, "tauTrkPt/F");
+    _tree -> Branch("tauProbeByVLooseIsolationMVArun2017v2DBoldDMwLT2017",  &_tauProbeByVLooseIsolationMVArun2017v2DBoldDMwLT2017,  "tauProbeByVLooseIsolationMVArun2017v2DBoldDMwLT2017/O");
+    _tree -> Branch("tauProbeByLooseIsolationMVArun2017v2DBoldDMwLT2017",  &_tauProbeByLooseIsolationMVArun2017v2DBoldDMwLT2017,  "tauProbeByLooseIsolationMVArun2017v2DBoldDMwLT2017/O");
+    _tree -> Branch("tauProbeByMediumIsolationMVArun2017v2DBoldDMwLT2017",  &_tauProbeByMediumIsolationMVArun2017v2DBoldDMwLT2017,  "tauProbeByMediumIsolationMVArun2017v2DBoldDMwLT2017/O");
+    _tree -> Branch("tauProbeByTightIsolationMVArun2017v2DBoldDMwLT2017",  &_tauProbeByTightIsolationMVArun2017v2DBoldDMwLT2017,  "tauProbeByTightIsolationMVArun2017v2DBoldDMwLT2017/O");
+    _tree -> Branch("tauProbeByVTightIsolationMVArun2017v2DBoldDMwLT2017",  &_tauProbeByVTightIsolationMVArun2017v2DBoldDMwLT2017,  "tauProbeByVTightIsolationMVArun2017v2DBoldDMwLT2017/O");
     _tree -> Branch("tauProbeAgainstMuonLoose3", &_tauProbeAgainstMuonLoose3, "tauProbeAgainstMuonLoose3/F");
     _tree -> Branch("tauProbeAgainstMuonTight3", &_tauProbeAgainstMuonTight3, "tauProbeAgainstMuonTIght3/F");
     _tree -> Branch("tauProbeAgainstElectronVLooseMVA6", &_tauProbeAgainstElectronVLooseMVA6, "tauProbeAgainstElectronVLooseMVA6/F");
@@ -422,6 +455,8 @@ void Ntuplizer::beginJob()
       TString name_iso = Form("hasL1_iso_%i",i);
       _tree -> Branch(name_iso,  &_hasL1_iso[i],  name_iso+"/I");
     }
+
+    _tree -> Branch("lastFilter", &lastFilter_, "lastFilter/I");
 
     return;
 }
@@ -566,9 +601,10 @@ void Ntuplizer::analyze(const edm::Event& iEvent, const edm::EventSetup& eSetup)
 			{
 			  foundTrigger = true;			  
 			  const std::vector<std::string>& filters = (parameter.hltFilters1);
+                          //std::cout << "HLTFilter: " << parameter.hltFilters1.at(0) << std::endl;
 			  if (hasFilters(obj, filters))
 			  {
-			    //std::cout << "#### FOUND ELE WITH HLT PATH " << x << " ####" << std::endl;
+			    std::cout << "#### FOUND ELE WITH HLT PATH " << x << " ####" << std::endl;
 			    _hltPt[x] = obj.pt();
 			    _hltEta[x] = obj.eta();
 			    _hltPhi[x] = obj.phi();
@@ -579,6 +615,23 @@ void Ntuplizer::analyze(const edm::Event& iEvent, const edm::EventSetup& eSetup)
 		  }
 		if (foundTrigger) _isProbeHLTmatched = true;
 	      }
+              
+              if (obj.hasPathName(filterPath_, false, false))
+              {
+                for (std::vector<std::string>::reverse_iterator filterName = triggerModules_.rbegin(); filterName != triggerModules_.rend(); filterName+=1)
+                {
+                    std::cout << *filterName << std::endl;
+                    if (obj.hasFilterLabel(*filterName))
+                    {
+                        std::cout << *filterName << std::endl;
+                        if (triggerModules_.rend() - filterName > lastFilter_)
+                        {
+                            lastFilter_ = triggerModules_.rend() - filterName;
+                            std::cout << lastFilter_ << std::endl;
+                        }
+                    }
+                }
+              }
 
 	    }
 
@@ -592,6 +645,7 @@ void Ntuplizer::analyze(const edm::Event& iEvent, const edm::EventSetup& eSetup)
 	for (pat::TauRef  tau : *taus){
 
 	  const float dR = deltaR(*eleProbe,*tau);
+          //std::cout << "dR: " << dR << std::endl;
 	  if( dR<0.3 ){
               foundTau = true;
 	    _tauProbePt = tau->pt();
@@ -599,11 +653,12 @@ void Ntuplizer::analyze(const edm::Event& iEvent, const edm::EventSetup& eSetup)
 	    _tauProbePhi = tau->phi();
 	    _tauProbeCharge = tau->charge();
 	    _tauProbeDM = tau->decayMode();
-	    _tauProbeByVLooseIsolationMVArun2v1DBoldDMwLT = tau->tauID("byVLooseIsolationMVArun2v1DBoldDMwLT");
-	    _tauProbeByLooseIsolationMVArun2v1DBoldDMwLT = tau->tauID("byLooseIsolationMVArun2v1DBoldDMwLT");
-	    _tauProbeByMediumIsolationMVArun2v1DBoldDMwLT = tau->tauID("byMediumIsolationMVArun2v1DBoldDMwLT");
-	    _tauProbeByTightIsolationMVArun2v1DBoldDMwLT = tau->tauID("byTightIsolationMVArun2v1DBoldDMwLT");
-	    _tauProbeByVTightIsolationMVArun2v1DBoldDMwLT = tau->tauID("byVTightIsolationMVArun2v1DBoldDMwLT");	    
+            tauTrkPt_ = tau->leadChargedHadrCand()->pt();
+	    _tauProbeByVLooseIsolationMVArun2017v2DBoldDMwLT2017 = tau->tauID("byVLooseIsolationMVArun2017v2DBoldDMwLT2017");
+	    _tauProbeByLooseIsolationMVArun2017v2DBoldDMwLT2017 = tau->tauID("byLooseIsolationMVArun2017v2DBoldDMwLT2017");
+	    _tauProbeByMediumIsolationMVArun2017v2DBoldDMwLT2017 = tau->tauID("byMediumIsolationMVArun2017v2DBoldDMwLT2017");
+	    _tauProbeByTightIsolationMVArun2017v2DBoldDMwLT2017 = tau->tauID("byTightIsolationMVArun2017v2DBoldDMwLT2017");
+	    _tauProbeByVTightIsolationMVArun2017v2DBoldDMwLT2017 = tau->tauID("byVTightIsolationMVArun2017v2DBoldDMwLT2017");	    
 	    _tauProbeAgainstMuonLoose3 = tau->tauID("againstMuonLoose3");
 	    _tauProbeAgainstMuonTight3 = tau->tauID("againstMuonTight3");
 	    _tauProbeAgainstElectronVLooseMVA6 = tau->tauID("againstElectronVLooseMVA6");
@@ -611,6 +666,7 @@ void Ntuplizer::analyze(const edm::Event& iEvent, const edm::EventSetup& eSetup)
 	    _tauProbeAgainstElectronMediumMVA6 = tau->tauID("againstElectronMediumMVA6");
 	    _tauProbeAgainstElectronTightMVA6 = tau->tauID("againstElectronTightMVA6");
 	    _tauProbeAgainstElectronVTightMVA6 = tau->tauID("againstElectronVTightMVA6");
+            //std::cout << "Found tau matching to probe electron." << std::endl;
 	    //if(_isProbeHLTmatched)
             //{
                 //std::cout << "Tag number:" << i << std::endl;
@@ -623,7 +679,7 @@ void Ntuplizer::analyze(const edm::Event& iEvent, const edm::EventSetup& eSetup)
 	  }
 
 	}
-        //std::cout << foundTau << std::endl;
+        //std::cout << "Found tau: " << foundTau << std::endl;
         if(!foundTau)
         {
             continue;
@@ -710,7 +766,8 @@ void Ntuplizer::analyze(const edm::Event& iEvent, const edm::EventSetup& eSetup)
  
 	_eleProbeTriggerBits = _eleProbeTriggerBitSet.to_ulong();
 	_eleTagTriggerBits = _eleTagTriggerBitSet.to_ulong();
-	//std::cout << "++++++++++ FILL ++++++++++" << std::endl;
+	//std::cout << "++++++++++ FILL ++++++++++ with tau pT:" << _tauProbePt << "and elePt: " << _eleProbePt<< std::endl;
+        //std::cout << "and probe is HLTmatched is: " << _isProbeHLTmatched << std::endl;
 	_tree -> Fill();
 
       }

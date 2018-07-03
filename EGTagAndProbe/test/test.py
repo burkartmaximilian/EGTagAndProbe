@@ -23,9 +23,12 @@ options.register ('JSONfile',
                   VarParsing.VarParsing.multiplicity.singleton, # singleton or list
                   VarParsing.VarParsing.varType.string,          # string, int, or float
                   "JSON file (empty for no JSON)")
-options.outputFile = 'NTuple_MC.root'
+if isMC:
+    options.outputFile = 'NTuple_MC.root'
+else:
+    options.outputFile = 'NTuple_Data.root'
 options.inputFiles = []
-options.maxEvents  = -999
+options.maxEvents  = 10
 options.parseArguments()
 
 
@@ -81,15 +84,25 @@ setattr(process,egmSeq,cms.Sequence(getattr(process,mvaMod)*getattr(process,egmM
 process.electrons = cms.Sequence(getattr(process,mvaMod)*getattr(process,egmMod)*getattr(process,regMod))
 
 
+#START RERUNNING OF ID TRAINING
+#
+# set up the rerunning of the latest tau id trainings
+import EGTagAndProbe.EGTagAndProbe.runTauIdMVA as idemb
+na = idemb.TauIDEmbedder(process, cms,
+        debug=True,
+        toKeep=["2017v2", "newDM2017v2"]
+)
+na.runTauID()
+
 
 
 if not isMC: # will use 80X
     from Configuration.AlCa.autoCond import autoCond
-    process.GlobalTag.globaltag = '94X_dataRun2_v6'
+    process.GlobalTag.globaltag = '94X_dataRun2_ReReco17_forValidation'
     process.load('EGTagAndProbe.EGTagAndProbe.tagAndProbe_cff')
     process.source = cms.Source("PoolSource",
         fileNames = cms.untracked.vstring(
-            '/store/data/Run2017F/SingleElectron/MINIAOD/17Nov2017-v1/50000/0014F790-FDE0-E711-A3E0-FA163E1B87FE.root'            
+            '/store/data/Run2017C/SingleElectron/MINIAOD/17Nov2017-v1/00000/0009989A-35FF-E711-BBE2-008CFAC93C14.root'
         ),
     )
 
@@ -98,7 +111,7 @@ else:
     process.GlobalTag.globaltag = '94X_mc2017_realistic_v14'
     process.load('EGTagAndProbe.EGTagAndProbe.MCanalysis_cff')
     process.source = cms.Source("PoolSource",
-        fileNames = cms.untracked.vstring(            
+        fileNames = cms.untracked.vstring(
 	    #'/store/mc/RunIIFall17MiniAOD/DYJetsToLL_M-50_TuneCP5_13TeV-amcatnloFXFX-pythia8/MINIAODSIM/94X_mc2017_realistic_v10-v1/00000/005DC030-D3F4-E711-889A-02163E01A62D.root'
             'file:/portal/ekpbms1/home/mburkart/workdir/CMSSW_9_4_6_patch1/src/pickevents_merged.root'
         )
@@ -136,6 +149,8 @@ process.options = cms.untracked.PSet(
 
 process.p = cms.Path(
     process.electrons +
+    process.rerunMvaIsolationSequence +
+    process.NewTauIDsEmbedded +
     process.NtupleSeq
 )
 
@@ -151,7 +166,7 @@ process.p = cms.Path(
 
 # Silence output
 process.load("FWCore.MessageService.MessageLogger_cfi")
-process.MessageLogger.cerr.FwkReport.reportEvery = 1000
+process.MessageLogger.cerr.FwkReport.reportEvery = 1
 
 # Adding ntuplizer
 process.TFileService=cms.Service('TFileService',fileName=cms.string(options.outputFile))
