@@ -63,7 +63,7 @@ patTriggerUnpacker = cms.EDProducer("PATTriggerObjectStandAloneUnpacker",
                                     )
 
 
-Ntuplizer = cms.EDAnalyzer("Ntuplizer",
+Ntuplizer = cms.EDAnalyzer("NtuplizerEG",
     treeName = cms.string("TagAndProbe"),
     electrons = cms.InputTag("gedGsfElectrons"),
     taus = cms.InputTag("goodTaus"),

@@ -47,12 +47,12 @@
 ██████  ███████  ██████ ███████ ██   ██ ██   ██ ██   ██    ██    ██  ██████  ██   ████
 */
 
-class Ntuplizer : public edm::EDAnalyzer {
+class NtuplizerEG : public edm::EDAnalyzer {
     public:
         /// Constructor
-  explicit Ntuplizer(const edm::ParameterSet&);
+  explicit NtuplizerEG(const edm::ParameterSet&);
         /// Destructor
-        virtual ~Ntuplizer();
+        virtual ~NtuplizerEG();
 
     private:
         //----edm control---
@@ -181,7 +181,7 @@ class Ntuplizer : public edm::EDAnalyzer {
 */
 
 // ----Constructor and Destructor -----
-Ntuplizer::Ntuplizer(const edm::ParameterSet& iConfig) :
+NtuplizerEG::NtuplizerEG(const edm::ParameterSet& iConfig) :
 _electronsTag       (consumes<edm::View<reco::GsfElectron> >                     (iConfig.getParameter<edm::InputTag>("electrons"))),
 _tauTag         (consumes<pat::TauRefVector>                      (iConfig.getParameter<edm::InputTag>("taus"))),
 _genParticlesTag (consumes<edm::View<reco::GenParticle> > (iConfig.getParameter<edm::InputTag>("genParticles"))),
@@ -247,10 +247,11 @@ filterPath_                                                       (iConfig.getPa
     return;
 }
 
-Ntuplizer::~Ntuplizer()
-{}
+NtuplizerEG::~NtuplizerEG()
+{
+}
 
-void Ntuplizer::beginRun(edm::Run const& iRun, edm::EventSetup const& iSetup)
+void NtuplizerEG::beginRun(edm::Run const& iRun, edm::EventSetup const& iSetup)
 {
     Bool_t changedConfig = false;
 
@@ -258,6 +259,7 @@ void Ntuplizer::beginRun(edm::Run const& iRun, edm::EventSetup const& iSetup)
         edm::LogError("HLTMatchingFilter") << "Initialization of HLTConfigProvider failed!!";
         return;
     }
+
 
     const edm::TriggerNames::Strings& triggerNames = _hltConfig.triggerNames();
     //std::cout << " ===== LOOKING FOR THE PATH INDEXES =====" << std::endl;
@@ -292,9 +294,7 @@ void Ntuplizer::beginRun(edm::Run const& iRun, edm::EventSetup const& iSetup)
                 // Look for the trigger filters running in this configuration.
                 if (hltPath==filterPath_)
                 {
-                    std::cout << hltPath << std::endl;
                     lastFilterInd_ = j;
-                    filterPath_.push_back('*');
                 }
             }
         }
@@ -303,18 +303,15 @@ void Ntuplizer::beginRun(edm::Run const& iRun, edm::EventSetup const& iSetup)
 
     // Get trigger modules which ran with saveTags option, e.g. important EDFilters
     triggerModules_= _hltConfig.saveTagsModules(lastFilterInd_);
-    std::cout << "Trigger modules with saved tags:" << std::endl;
     for (const std::string triggerModule: triggerModules_)
     {
-        std::cout << triggerModule << "   ";
         filterLabel_ = triggerModule;
         filterLabelsTree_->Fill();
     }
-    std::cout << std::endl;
 
 }
 
-void Ntuplizer::Initialize() {
+void NtuplizerEG::Initialize() {
     _indexevents = 0;
     _runNumber = 0;
     _lumi = 0;
@@ -379,7 +376,7 @@ void Ntuplizer::Initialize() {
 }
 
 
-void Ntuplizer::beginJob()
+void NtuplizerEG::beginJob()
 {
     edm::Service<TFileService> fs;
     _tree = fs -> make<TTree>(_treeName.c_str(), _treeName.c_str());
@@ -388,6 +385,7 @@ void Ntuplizer::beginJob()
     _tree -> Branch("EventNumber",&_indexevents,"EventNumber/l");
     _tree -> Branch("RunNumber",&_runNumber,"RunNumber/I");
     _tree -> Branch("lumi",&_lumi,"lumi/I");
+
     _tree -> Branch("eleProbeTriggerBits", &_eleProbeTriggerBits, "eleProbeTriggerBits/l");
     _tree -> Branch("eleTagTriggerBits", &_eleTagTriggerBits, "eleTagTriggerBits/l");
 
@@ -462,19 +460,19 @@ void Ntuplizer::beginJob()
 }
 
 
-void Ntuplizer::endJob()
+void NtuplizerEG::endJob()
 {
     return;
 }
 
 
-void Ntuplizer::endRun(edm::Run const& iRun, edm::EventSetup const& iSetup)
+void NtuplizerEG::endRun(edm::Run const& iRun, edm::EventSetup const& iSetup)
 {
     return;
 }
 
 
-void Ntuplizer::analyze(const edm::Event& iEvent, const edm::EventSetup& eSetup)
+void NtuplizerEG::analyze(const edm::Event& iEvent, const edm::EventSetup& eSetup)
 {
     Initialize();
 
@@ -616,18 +614,15 @@ void Ntuplizer::analyze(const edm::Event& iEvent, const edm::EventSetup& eSetup)
 		if (foundTrigger) _isProbeHLTmatched = true;
 	      }
               
-              if (obj.hasPathName(filterPath_, false, false))
+              if (obj.hasPathName(filterPath_ + "*", false, false))
               {
                 for (std::vector<std::string>::reverse_iterator filterName = triggerModules_.rbegin(); filterName != triggerModules_.rend(); filterName+=1)
                 {
-                    std::cout << *filterName << std::endl;
                     if (obj.hasFilterLabel(*filterName))
                     {
-                        std::cout << *filterName << std::endl;
                         if (triggerModules_.rend() - filterName > lastFilter_)
                         {
                             lastFilter_ = triggerModules_.rend() - filterName;
-                            std::cout << lastFilter_ << std::endl;
                         }
                     }
                 }
@@ -645,7 +640,6 @@ void Ntuplizer::analyze(const edm::Event& iEvent, const edm::EventSetup& eSetup)
 	for (pat::TauRef  tau : *taus){
 
 	  const float dR = deltaR(*eleProbe,*tau);
-          //std::cout << "dR: " << dR << std::endl;
 	  if( dR<0.3 ){
               foundTau = true;
 	    _tauProbePt = tau->pt();
@@ -666,27 +660,14 @@ void Ntuplizer::analyze(const edm::Event& iEvent, const edm::EventSetup& eSetup)
 	    _tauProbeAgainstElectronMediumMVA6 = tau->tauID("againstElectronMediumMVA6");
 	    _tauProbeAgainstElectronTightMVA6 = tau->tauID("againstElectronTightMVA6");
 	    _tauProbeAgainstElectronVTightMVA6 = tau->tauID("againstElectronVTightMVA6");
-            //std::cout << "Found tau matching to probe electron." << std::endl;
-	    //if(_isProbeHLTmatched)
-            //{
-                //std::cout << "Tag number:" << i << std::endl;
-                //std::cout << "Probe number:" << j << std::endl;
-                //std::cout << "Electron pT:" << eleProbe->pt() << std::endl;
-                //std::cout << "Tau pT:" << _tauProbePt << std::endl;
-            //}
             break;
-
 	  }
 
 	}
-        //std::cout << "Found tau: " << foundTau << std::endl;
         if(!foundTau)
         {
             continue;
         }
-
-
-
 
 
 	//! TagAndProbe on L1T EG
@@ -780,7 +761,7 @@ void Ntuplizer::analyze(const edm::Event& iEvent, const edm::EventSetup& eSetup)
 
 
 
-bool Ntuplizer::hasFilters(const pat::TriggerObjectStandAlone&  obj , const std::vector<std::string>& filtersToLookFor) {
+bool NtuplizerEG::hasFilters(const pat::TriggerObjectStandAlone&  obj , const std::vector<std::string>& filtersToLookFor) {
 
     const std::vector<std::string>& eventLabels = obj.filterLabels();
     for (const std::string& filter : filtersToLookFor)
@@ -809,7 +790,7 @@ bool Ntuplizer::hasFilters(const pat::TriggerObjectStandAlone&  obj , const std:
 
 
 
-bool Ntuplizer::matchToTruth(const edm::Ptr<reco::GsfElectron> ele, 
+bool NtuplizerEG::matchToTruth(const edm::Ptr<reco::GsfElectron> ele, 
 			     const edm::Handle<edm::View<reco::GenParticle>> &prunedGenParticles){
 
   // 
@@ -846,6 +827,6 @@ bool Ntuplizer::matchToTruth(const edm::Ptr<reco::GsfElectron> ele,
 
 
 #include <FWCore/Framework/interface/MakerMacros.h>
-DEFINE_FWK_MODULE(Ntuplizer);
+DEFINE_FWK_MODULE(NtuplizerEG);
 
 #endif //NTUPLIZER_H
