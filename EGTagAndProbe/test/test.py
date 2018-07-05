@@ -28,7 +28,7 @@ if isMC:
 else:
     options.outputFile = 'NTuple_Data.root'
 options.inputFiles = []
-options.maxEvents  = 10
+options.maxEvents  = -1
 options.parseArguments()
 
 
@@ -98,7 +98,7 @@ na.runTauID()
 
 if not isMC: # will use 80X
     from Configuration.AlCa.autoCond import autoCond
-    process.GlobalTag.globaltag = '94X_dataRun2_ReReco17_forValidation'
+    process.GlobalTag.globaltag = '94X_dataRun2_ReReco_EOY17_v6'
     process.load('EGTagAndProbe.EGTagAndProbe.tagAndProbe_cff')
     process.source = cms.Source("PoolSource",
         fileNames = cms.untracked.vstring(
@@ -108,7 +108,7 @@ if not isMC: # will use 80X
 
 
 else:
-    process.GlobalTag.globaltag = '94X_mc2017_realistic_v14'
+    process.GlobalTag.globaltag = '94X_mc2017_realistic_v15'
     process.load('EGTagAndProbe.EGTagAndProbe.MCanalysis_cff')
     process.source = cms.Source("PoolSource",
         fileNames = cms.untracked.vstring(
