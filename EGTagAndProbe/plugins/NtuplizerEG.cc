@@ -1,5 +1,5 @@
-#ifndef NTUPLIZER_H
-#define NTUPLIZER_H
+#ifndef NTUPLIZEREG_H
+#define NTUPLIZEREG_H
 
 #include <cmath>
 #include <vector>
@@ -406,13 +406,13 @@ void NtuplizerEG::beginJob()
     _tree -> Branch("tauProbeByMediumIsolationMVArun2017v2DBoldDMwLT2017",  &_tauProbeByMediumIsolationMVArun2017v2DBoldDMwLT2017,  "tauProbeByMediumIsolationMVArun2017v2DBoldDMwLT2017/O");
     _tree -> Branch("tauProbeByTightIsolationMVArun2017v2DBoldDMwLT2017",  &_tauProbeByTightIsolationMVArun2017v2DBoldDMwLT2017,  "tauProbeByTightIsolationMVArun2017v2DBoldDMwLT2017/O");
     _tree -> Branch("tauProbeByVTightIsolationMVArun2017v2DBoldDMwLT2017",  &_tauProbeByVTightIsolationMVArun2017v2DBoldDMwLT2017,  "tauProbeByVTightIsolationMVArun2017v2DBoldDMwLT2017/O");
-    _tree -> Branch("tauProbeAgainstMuonLoose3", &_tauProbeAgainstMuonLoose3, "tauProbeAgainstMuonLoose3/F");
-    _tree -> Branch("tauProbeAgainstMuonTight3", &_tauProbeAgainstMuonTight3, "tauProbeAgainstMuonTIght3/F");
-    _tree -> Branch("tauProbeAgainstElectronVLooseMVA6", &_tauProbeAgainstElectronVLooseMVA6, "tauProbeAgainstElectronVLooseMVA6/F");
-    _tree -> Branch("tauProbeAgainstElectronLooseMVA6", &_tauProbeAgainstElectronLooseMVA6, "tauProbeAgainstElectronLooseMVA6/F");
-    _tree -> Branch("tauProbeAgainstElectronMediumMVA6", &_tauProbeAgainstElectronMediumMVA6, "tauProbeAgainstElectronMediumMVA6/F");
-    _tree -> Branch("tauProbeAgainstElectronTightMVA6", &_tauProbeAgainstElectronTightMVA6, "tauProbeAgainstElectronTightMVA6/F");
-    _tree -> Branch("tauProbeAgainstElectronVTightMVA6", &_tauProbeAgainstElectronVTightMVA6, "tauProbeAgainstElectronVTightMVA6/F");
+    _tree -> Branch("tauProbeAgainstMuonLoose3", &_tauProbeAgainstMuonLoose3, "tauProbeAgainstMuonLoose3/O");
+    _tree -> Branch("tauProbeAgainstMuonTight3", &_tauProbeAgainstMuonTight3, "tauProbeAgainstMuonTIght3/O");
+    _tree -> Branch("tauProbeAgainstElectronVLooseMVA6", &_tauProbeAgainstElectronVLooseMVA6, "tauProbeAgainstElectronVLooseMVA6/O");
+    _tree -> Branch("tauProbeAgainstElectronLooseMVA6", &_tauProbeAgainstElectronLooseMVA6, "tauProbeAgainstElectronLooseMVA6/O");
+    _tree -> Branch("tauProbeAgainstElectronMediumMVA6", &_tauProbeAgainstElectronMediumMVA6, "tauProbeAgainstElectronMediumMVA6/O");
+    _tree -> Branch("tauProbeAgainstElectronTightMVA6", &_tauProbeAgainstElectronTightMVA6, "tauProbeAgainstElectronTightMVA6/O");
+    _tree -> Branch("tauProbeAgainstElectronVTightMVA6", &_tauProbeAgainstElectronVTightMVA6, "tauProbeAgainstElectronVTightMVA6/O");
 
 
     _tree -> Branch("eleTagPt",  &_eleTagPt,  "eleTagPt/F");
