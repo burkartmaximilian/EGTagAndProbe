@@ -35,7 +35,8 @@ HLTLISTPROBE = cms.VPSet(
 import HLTrigger.HLTfilters.hltHighLevel_cfi as hlt
 hltFilter = hlt.hltHighLevel.clone(
     TriggerResultsTag = cms.InputTag("TriggerResults","","HLT"),
-    HLTPaths = ['HLT_Ele35_WPTight_Gsf_v*'],#['HLT_Ele32_WPTight_Gsf_v*','HLT_Ele35_WPTight_Gsf_v*'],
+    HLTPaths = ['HLT_Ele35_WPTight_Gsf_v*'],
+    #HLTPaths _ ['HLT_Ele32_WPTight_Gsf_v*','HLT_Ele35_WPTight_Gsf_v*'],
     andOr = cms.bool(True), # how to deal with multiple triggers: True (OR) accept if ANY is true, False (AND) accept if ALL are true
     throw = cms.bool(True) #if True: throws exception if a trigger path is invalid
 )
@@ -66,11 +67,12 @@ Ntuplizer = cms.EDAnalyzer("NtuplizerEG",
     treeName = cms.string("TagAndProbe"),
     electrons = cms.InputTag("gedGsfElectrons"),
     taus = cms.InputTag("goodTaus"),
-    genParticles = cms.InputTag("genParticles"),                       
+    genParticles = cms.InputTag("genParticles"),
     eleMediumIdMap = cms.InputTag("egmGsfElectronIDs:mvaEleID-Fall17-iso-V1-wp90"),
     eleLooseIdMap = cms.InputTag("egmGsfElectronIDs:mvaEleID-Fall17-iso-V1-wpLoose"),
+    puInfo = cms.InputTag("slimmedAddPileupInfo"),
     triggerSet = cms.InputTag("patTriggerUnpacker"),
-    triggerResultsLabel = cms.InputTag("TriggerResults", "", "HLT"),   
+    triggerResultsLabel = cms.InputTag("TriggerResults", "", "HLT"),
     L1EG = cms.InputTag("caloStage2Digis", "EGamma", "RECO"),
     L1EmuEG = cms.InputTag("simCaloStage2Digis", "MP"),
     Vertices = cms.InputTag("offlinePrimaryVertices"),
