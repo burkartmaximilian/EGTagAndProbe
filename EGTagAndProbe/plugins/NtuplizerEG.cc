@@ -26,6 +26,7 @@
 #include "HLTrigger/HLTcore/interface/HLTConfigProvider.h"
 #include "DataFormats/L1Trigger/interface/EGamma.h"
 #include "DataFormats/VertexReco/interface/Vertex.h"
+#include "SimDataFormats/PileupSummaryInfo/interface/PileupSummaryInfo.h"
 #include "DataFormats/Common/interface/ValueMap.h"
 #include "DataFormats/Common/interface/TriggerResults.h"
 
@@ -83,18 +84,41 @@ class NtuplizerEG : public edm::EDAnalyzer {
         float _eleProbePhi;
         float _eleProbeSclEt;
         int _eleProbeCharge;
+        float eleProbeSclEtaWidth_;
+        float eleProbeSclPhiWidth_;
+        
+        float eleProbeEcalIso_;
+        float eleProbeEcalPFClusterIso_;
+        //bool eleProbe...ID_;
+        bool eleProbePassConversionVeto_;
 
         float _tauProbePt;
         float _tauProbeEta;
         float _tauProbePhi;       
         int _tauProbeCharge;
         int _tauProbeDM;
-        float tauTrkPt_;
+        float tauProbeTrkPt_;
+
+        bool _tauProbeByLooseCombinedIsolationDeltaBetaCorr3Hits;
+        bool _tauProbeByMediumCombinedIsolationDeltaBetaCorr3Hits;
+        bool _tauProbeByTightCombinedIsolationDeltaBetaCorr3Hits;
+        float _tauProbeByIsolationMVArun2017v2DBoldDMwLTraw2017;
+        bool _tauProbeByVVLooseIsolationMVArun2017v2DBoldDMwLT2017;
         bool _tauProbeByVLooseIsolationMVArun2017v2DBoldDMwLT2017;
         bool _tauProbeByLooseIsolationMVArun2017v2DBoldDMwLT2017;
         bool _tauProbeByMediumIsolationMVArun2017v2DBoldDMwLT2017;
         bool _tauProbeByTightIsolationMVArun2017v2DBoldDMwLT2017;
         bool _tauProbeByVTightIsolationMVArun2017v2DBoldDMwLT2017;
+        bool _tauProbeByVVTightIsolationMVArun2017v2DBoldDMwLT2017;
+        float _tauProbeByIsolationMVArun2017v2DBnewDMwLTraw2017;
+        bool _tauProbeByVVLooseIsolationMVArun2017v2DBnewDMwLT2017;
+        bool _tauProbeByVLooseIsolationMVArun2017v2DBnewDMwLT2017;
+        bool _tauProbeByLooseIsolationMVArun2017v2DBnewDMwLT2017;
+        bool _tauProbeByMediumIsolationMVArun2017v2DBnewDMwLT2017;
+        bool _tauProbeByTightIsolationMVArun2017v2DBnewDMwLT2017;
+        bool _tauProbeByVTightIsolationMVArun2017v2DBnewDMwLT2017;
+        bool _tauProbeByVVTightIsolationMVArun2017v2DBnewDMwLT2017;
+
         bool _tauProbeAgainstMuonLoose3;
         bool _tauProbeAgainstMuonTight3;
         bool _tauProbeAgainstElectronVLooseMVA6;
@@ -131,6 +155,7 @@ class NtuplizerEG : public edm::EDAnalyzer {
         int _eleTagCharge;
         float _Mee;
         int _Nvtx;
+        float nTruePU_;
         
         int _hasL1[100];
         int _hasL1_iso[100];
@@ -145,6 +170,7 @@ class NtuplizerEG : public edm::EDAnalyzer {
         edm::EDGetTokenT<l1t::EGammaBxCollection> _L1EGTag  ;
         edm::EDGetTokenT<l1t::EGammaBxCollection> _L1EmuEGTag  ;
         edm::EDGetTokenT<std::vector<reco::Vertex>> _VtxTag;
+        edm::EDGetTokenT<std::vector<PileupSummaryInfo>> _puTag;
 
         bool _useGenMatch;
         bool _useHLTMatch;
@@ -192,6 +218,7 @@ _triggerBits    (consumes<edm::TriggerResults>                    (iConfig.getPa
 _L1EGTag       (consumes<l1t::EGammaBxCollection>                   (iConfig.getParameter<edm::InputTag>("L1EG"))),
 _L1EmuEGTag    (consumes<l1t::EGammaBxCollection>                   (iConfig.getParameter<edm::InputTag>("L1EmuEG"))),
 _VtxTag         (consumes<std::vector<reco::Vertex>>              (iConfig.getParameter<edm::InputTag>("Vertices"))),
+_puTag	(consumes<std::vector<PileupSummaryInfo>> (iConfig.getParameter<edm::InputTag>("puInfo"))),
 filterPath_                                                       (iConfig.getParameter<std::string>("filterPath"))
 {
     _treeName = iConfig.getParameter<std::string>("treeName");
@@ -320,18 +347,39 @@ void NtuplizerEG::Initialize() {
     _eleProbePhi = -1.;
     _eleProbeSclEt = -1.;
     _eleProbeCharge = 0;
+    eleProbeSclEtaWidth_ = -1.;
+    eleProbeSclPhiWidth_ = -1.;
+    
+    eleProbeEcalIso_ = -1.;
+    eleProbeEcalPFClusterIso_ = -1.;
+    //eleProbe...ID_ = false;
+    eleProbePassConversionVeto_ = false;
 
     _tauProbePt = -1.;
     _tauProbeEta = -1.;
     _tauProbePhi = -1.;
     _tauProbeCharge = 0;
     _tauProbeDM = -1;
-    tauTrkPt_ = -1;
+    tauProbeTrkPt_ = -1;
+    _tauProbeByLooseCombinedIsolationDeltaBetaCorr3Hits = 0;
+    _tauProbeByMediumCombinedIsolationDeltaBetaCorr3Hits = 0;
+    _tauProbeByTightCombinedIsolationDeltaBetaCorr3Hits = 0;
+    _tauProbeByIsolationMVArun2017v2DBoldDMwLTraw2017 = -1.;
+    _tauProbeByVVLooseIsolationMVArun2017v2DBoldDMwLT2017 = 0;
     _tauProbeByVLooseIsolationMVArun2017v2DBoldDMwLT2017 = 0;
     _tauProbeByLooseIsolationMVArun2017v2DBoldDMwLT2017 = 0;
     _tauProbeByMediumIsolationMVArun2017v2DBoldDMwLT2017 = 0;
     _tauProbeByTightIsolationMVArun2017v2DBoldDMwLT2017 = 0;
     _tauProbeByVTightIsolationMVArun2017v2DBoldDMwLT2017 = 0;
+    _tauProbeByVVTightIsolationMVArun2017v2DBoldDMwLT2017 = 0;
+    _tauProbeByIsolationMVArun2017v2DBnewDMwLTraw2017 = -1.;
+    _tauProbeByVVLooseIsolationMVArun2017v2DBnewDMwLT2017 = 0;
+    _tauProbeByVLooseIsolationMVArun2017v2DBnewDMwLT2017 = 0;
+    _tauProbeByLooseIsolationMVArun2017v2DBnewDMwLT2017 = 0;
+    _tauProbeByMediumIsolationMVArun2017v2DBnewDMwLT2017 = 0;
+    _tauProbeByTightIsolationMVArun2017v2DBnewDMwLT2017 = 0;
+    _tauProbeByVTightIsolationMVArun2017v2DBnewDMwLT2017 = 0;
+    _tauProbeByVVTightIsolationMVArun2017v2DBnewDMwLT2017 = 0;
     _tauProbeAgainstMuonLoose3 = 0;
     _tauProbeAgainstMuonTight3 = 0;
     _tauProbeAgainstElectronVLooseMVA6 = 0;
@@ -366,6 +414,7 @@ void NtuplizerEG::Initialize() {
     _l1tEmuRawEt = -1;
     _l1tEmuIsoEt = -1;
     _foundTag = 0;
+    nTruePU_ = 0.;
 
     for(unsigned int i=0;i<100;i++){
       _hasL1[i] = -1;
@@ -386,6 +435,44 @@ void NtuplizerEG::beginJob()
     _tree -> Branch("RunNumber",&_runNumber,"RunNumber/I");
     _tree -> Branch("lumi",&_lumi,"lumi/I");
 
+
+
+
+
+    _tree -> Branch("tauPt",  &_tauProbePt,  "tauPt/F");
+    _tree -> Branch("tauEta", &_tauProbeEta, "tauEta/F");
+    _tree -> Branch("tauPhi", &_tauProbePhi, "tauPhi/F");
+    _tree -> Branch("tauDM",  &_tauProbeDM,  "tauDM/I");
+    _tree -> Branch("tauCharge",  &_tauProbeCharge,  "tauCharge/I");
+    _tree -> Branch("tauTrkPt", &tauProbeTrkPt_, "tauTrkPt/F");
+    
+    _tree -> Branch("tauByLooseCombinedIsolationDeltaBetaCorr3Hits", &_tauProbeByLooseCombinedIsolationDeltaBetaCorr3Hits, "tauByLooseCombinedIsolationDeltaBetaCorr3Hits/O");
+    _tree -> Branch("tauByMediumCombinedIsolationDeltaBetaCorr3Hits", &_tauProbeByMediumCombinedIsolationDeltaBetaCorr3Hits, "tauByMediumCombinedIsolationDeltaBetaCorr3Hits/O");
+    _tree -> Branch("tauByTightCombinedIsolationDeltaBetaCorr3Hits", &_tauProbeByTightCombinedIsolationDeltaBetaCorr3Hits, "tauByTightCombinedIsolationDeltaBetaCorr3Hits/O");
+    _tree -> Branch("tauByIsolationMVArun2017v2DBoldDMwLTraw2017",  &_tauProbeByIsolationMVArun2017v2DBoldDMwLTraw2017,  "tauByIsolationMVArun2017v2DBoldDMwLTraw2017/F");
+    _tree -> Branch("tauByVVLooseIsolationMVArun2017v2DBoldDMwLT2017",  &_tauProbeByVVLooseIsolationMVArun2017v2DBoldDMwLT2017,  "tauByVVLooseIsolationMVArun2017v2DBoldDMwLT2017/O");
+    _tree -> Branch("tauByVLooseIsolationMVArun2017v2DBoldDMwLT2017",  &_tauProbeByVLooseIsolationMVArun2017v2DBoldDMwLT2017,  "tauByVLooseIsolationMVArun2017v2DBoldDMwLT2017/O");
+    _tree -> Branch("tauByLooseIsolationMVArun2017v2DBoldDMwLT2017",  &_tauProbeByLooseIsolationMVArun2017v2DBoldDMwLT2017,  "tauByLooseIsolationMVArun2017v2DBoldDMwLT2017/O");
+    _tree -> Branch("tauByMediumIsolationMVArun2017v2DBoldDMwLT2017",  &_tauProbeByMediumIsolationMVArun2017v2DBoldDMwLT2017,  "tauByMediumIsolationMVArun2017v2DBoldDMwLT2017/O");
+    _tree -> Branch("tauByTightIsolationMVArun2017v2DBoldDMwLT2017",  &_tauProbeByTightIsolationMVArun2017v2DBoldDMwLT2017,  "tauByTightIsolationMVArun2017v2DBoldDMwLT2017/O");
+    _tree -> Branch("tauByVTightIsolationMVArun2017v2DBoldDMwLT2017",  &_tauProbeByVTightIsolationMVArun2017v2DBoldDMwLT2017,  "tauByVTightIsolationMVArun2017v2DBoldDMwLT2017/O");
+    _tree -> Branch("tauByVVTightIsolationMVArun2017v2DBoldDMwLT2017",  &_tauProbeByVVTightIsolationMVArun2017v2DBoldDMwLT2017,  "tauByVVTightIsolationMVArun2017v2DBoldDMwLT2017/O");
+    _tree -> Branch("tauByIsolationMVArun2017v2DBnewDMwLTraw2017",  &_tauProbeByIsolationMVArun2017v2DBnewDMwLTraw2017,  "tauByIsolationMVArun2017v2DBnewDMwLTraw2017/F");
+    _tree -> Branch("tauByVVLooseIsolationMVArun2017v2DBnewDMwLT2017",  &_tauProbeByVVLooseIsolationMVArun2017v2DBnewDMwLT2017,  "tauByVVLooseIsolationMVArun2017v2DBnewDMwLT2017/O");
+    _tree -> Branch("tauByVLooseIsolationMVArun2017v2DBnewDMwLT2017",  &_tauProbeByVLooseIsolationMVArun2017v2DBnewDMwLT2017,  "tauByVLooseIsolationMVArun2017v2DBnewDMwLT2017/O");
+    _tree -> Branch("tauByLooseIsolationMVArun2017v2DBnewDMwLT2017",  &_tauProbeByLooseIsolationMVArun2017v2DBnewDMwLT2017,  "tauByLooseIsolationMVArun2017v2DBnewDMwLT2017/O");
+    _tree -> Branch("tauByMediumIsolationMVArun2017v2DBnewDMwLT2017",  &_tauProbeByMediumIsolationMVArun2017v2DBnewDMwLT2017,  "tauByMediumIsolationMVArun2017v2DBnewDMwLT2017/O");
+    _tree -> Branch("tauByTightIsolationMVArun2017v2DBnewDMwLT2017",  &_tauProbeByTightIsolationMVArun2017v2DBnewDMwLT2017,  "tauByTightIsolationMVArun2017v2DBnewDMwLT2017/O");
+    _tree -> Branch("tauByVTightIsolationMVArun2017v2DBnewDMwLT2017",  &_tauProbeByVTightIsolationMVArun2017v2DBnewDMwLT2017,  "tauByVTightIsolationMVArun2017v2DBnewDMwLT2017/O");
+    _tree -> Branch("tauByVVTightIsolationMVArun2017v2DBnewDMwLT2017",  &_tauProbeByVVTightIsolationMVArun2017v2DBnewDMwLT2017,  "tauByVVTightIsolationMVArun2017v2DBnewDMwLT2017/O");
+    _tree -> Branch("tauAgainstMuonLoose3", &_tauProbeAgainstMuonLoose3, "tauAgainstMuonLoose3/O");
+    _tree -> Branch("tauAgainstMuonTight3", &_tauProbeAgainstMuonTight3, "tauAgainstMuonTight3/O");
+    _tree -> Branch("tauAgainstElectronVLooseMVA6", &_tauProbeAgainstElectronVLooseMVA6, "tauAgainstElectronVLooseMVA6/O");
+    _tree -> Branch("tauAgainstElectronLooseMVA6", &_tauProbeAgainstElectronLooseMVA6, "tauAgainstElectronLooseMVA6/O");
+    _tree -> Branch("tauAgainstElectronMediumMVA6", &_tauProbeAgainstElectronMediumMVA6, "tauAgainstElectronMediumMVA6/O");
+    _tree -> Branch("tauAgainstElectronTightMVA6", &_tauProbeAgainstElectronTightMVA6, "tauAgainstElectronTightMVA6/O");
+    _tree -> Branch("tauAgainstElectronVTightMVA6", &_tauProbeAgainstElectronVTightMVA6, "tauAgainstElectronVTightMVA6/O");
+
     _tree -> Branch("eleProbeTriggerBits", &_eleProbeTriggerBits, "eleProbeTriggerBits/l");
     _tree -> Branch("eleTagTriggerBits", &_eleTagTriggerBits, "eleTagTriggerBits/l");
 
@@ -394,25 +481,13 @@ void NtuplizerEG::beginJob()
     _tree -> Branch("eleProbePhi", &_eleProbePhi, "eleProbePhi/F");
     _tree -> Branch("eleProbeSclEt",  &_eleProbeSclEt,  "eleProbeSclEt/F");
     _tree -> Branch("eleProbeCharge",  &_eleProbeCharge,  "eleProbeCharge/I");
+    _tree -> Branch("eleProbeSclEtaWidth", &eleProbeSclEtaWidth_, "eleProbeSclEtaWidth/F");
+    _tree -> Branch("eleProbeSclPhiWidth", &eleProbeSclPhiWidth_, "eleProbeSclPhiWidth/F");
 
-    _tree -> Branch("tauProbePt",  &_tauProbePt,  "tauProbePt/F");
-    _tree -> Branch("tauProbeEta", &_tauProbeEta, "tauProbeEta/F");
-    _tree -> Branch("tauProbePhi", &_tauProbePhi, "tauProbePhi/F");
-    _tree -> Branch("tauProbeCharge",  &_tauProbeCharge,  "tauProbeCharge/I");
-    _tree -> Branch("tauProbeDM",  &_tauProbeDM,  "tauProbeDM/I");
-    _tree -> Branch("tauTrkPt", &tauTrkPt_, "tauTrkPt/F");
-    _tree -> Branch("tauProbeByVLooseIsolationMVArun2017v2DBoldDMwLT2017",  &_tauProbeByVLooseIsolationMVArun2017v2DBoldDMwLT2017,  "tauProbeByVLooseIsolationMVArun2017v2DBoldDMwLT2017/O");
-    _tree -> Branch("tauProbeByLooseIsolationMVArun2017v2DBoldDMwLT2017",  &_tauProbeByLooseIsolationMVArun2017v2DBoldDMwLT2017,  "tauProbeByLooseIsolationMVArun2017v2DBoldDMwLT2017/O");
-    _tree -> Branch("tauProbeByMediumIsolationMVArun2017v2DBoldDMwLT2017",  &_tauProbeByMediumIsolationMVArun2017v2DBoldDMwLT2017,  "tauProbeByMediumIsolationMVArun2017v2DBoldDMwLT2017/O");
-    _tree -> Branch("tauProbeByTightIsolationMVArun2017v2DBoldDMwLT2017",  &_tauProbeByTightIsolationMVArun2017v2DBoldDMwLT2017,  "tauProbeByTightIsolationMVArun2017v2DBoldDMwLT2017/O");
-    _tree -> Branch("tauProbeByVTightIsolationMVArun2017v2DBoldDMwLT2017",  &_tauProbeByVTightIsolationMVArun2017v2DBoldDMwLT2017,  "tauProbeByVTightIsolationMVArun2017v2DBoldDMwLT2017/O");
-    _tree -> Branch("tauProbeAgainstMuonLoose3", &_tauProbeAgainstMuonLoose3, "tauProbeAgainstMuonLoose3/O");
-    _tree -> Branch("tauProbeAgainstMuonTight3", &_tauProbeAgainstMuonTight3, "tauProbeAgainstMuonTIght3/O");
-    _tree -> Branch("tauProbeAgainstElectronVLooseMVA6", &_tauProbeAgainstElectronVLooseMVA6, "tauProbeAgainstElectronVLooseMVA6/O");
-    _tree -> Branch("tauProbeAgainstElectronLooseMVA6", &_tauProbeAgainstElectronLooseMVA6, "tauProbeAgainstElectronLooseMVA6/O");
-    _tree -> Branch("tauProbeAgainstElectronMediumMVA6", &_tauProbeAgainstElectronMediumMVA6, "tauProbeAgainstElectronMediumMVA6/O");
-    _tree -> Branch("tauProbeAgainstElectronTightMVA6", &_tauProbeAgainstElectronTightMVA6, "tauProbeAgainstElectronTightMVA6/O");
-    _tree -> Branch("tauProbeAgainstElectronVTightMVA6", &_tauProbeAgainstElectronVTightMVA6, "tauProbeAgainstElectronVTightMVA6/O");
+    _tree -> Branch("eleProbeEcalIso", &eleProbeEcalIso_, "eleProbeEcalIso/F");
+    _tree -> Branch("eleProbeEcalPFClusterIso", &eleProbeEcalPFClusterIso_, "eleProbeEcalPFClusterIso/F");
+    // _tree -> Branch("eleProbe...ID", &eleProbe...ID_, "eleProbe...ID/O");
+    _tree -> Branch("eleProbePassConversionVeto", &eleProbePassConversionVeto_, "eleProbePassConversionVeto/O");
 
 
     _tree -> Branch("eleTagPt",  &_eleTagPt,  "eleTagPt/F");
@@ -446,6 +521,7 @@ void NtuplizerEG::beginJob()
     _tree -> Branch("isOS", &_isOS, "isOS/O");
     _tree -> Branch("foundTag", &_foundTag, "foundTag/I");
     _tree -> Branch("Nvtx", &_Nvtx, "Nvtx/I");
+    _tree->Branch("nTruePU", &nTruePU_, "nTruePU/F");
 
     for(unsigned int i=0;i<100;i++){  
       TString name = Form("hasL1_%i",i);
@@ -490,6 +566,7 @@ void NtuplizerEG::analyze(const edm::Event& iEvent, const edm::EventSetup& eSetu
     edm::Handle<pat::TriggerObjectStandAloneCollection> triggerObjects;
     edm::Handle<edm::TriggerResults> triggerBits;
     edm::Handle<std::vector<reco::Vertex> >  vertices;
+    edm::Handle<std::vector<PileupSummaryInfo>> puInfo;
 
     iEvent.getByToken(_electronsTag, electrons);
     iEvent.getByToken(_tauTag, taus);
@@ -499,6 +576,7 @@ void NtuplizerEG::analyze(const edm::Event& iEvent, const edm::EventSetup& eSetu
       iEvent.getByToken(_triggerObjects, triggerObjects);
     iEvent.getByToken(_triggerBits, triggerBits);
     iEvent.getByToken(_VtxTag,vertices);
+    iEvent.getByToken(_puTag, puInfo);
 
     if(_useGenMatch)
       iEvent.getByToken(_genParticlesTag, genParticles);
@@ -612,21 +690,22 @@ void NtuplizerEG::analyze(const edm::Event& iEvent, const edm::EventSetup& eSetu
 		    x++;
 		  }
 		if (foundTrigger) _isProbeHLTmatched = true;
-	      }
-              
-              if (obj.hasPathName(filterPath_ + "*", false, false))
-              {
-                for (std::vector<std::string>::reverse_iterator filterName = triggerModules_.rbegin(); filterName != triggerModules_.rend(); filterName+=1)
+
+                if (obj.hasPathName(filterPath_ + "*", false, false))
                 {
-                    if (obj.hasFilterLabel(*filterName))
+                    for (std::vector<std::string>::reverse_iterator filterName = triggerModules_.rbegin(); filterName != triggerModules_.rend(); filterName+=1)
                     {
-                        if (triggerModules_.rend() - filterName > lastFilter_)
+                        if (obj.hasFilterLabel(*filterName))
                         {
-                            lastFilter_ = triggerModules_.rend() - filterName;
+                            if (triggerModules_.rend() - filterName > lastFilter_)
+                            {
+                                lastFilter_ = triggerModules_.rend() - filterName;
+                            }
                         }
                     }
                 }
-              }
+	      }
+              
 
 	    }
 
@@ -647,12 +726,25 @@ void NtuplizerEG::analyze(const edm::Event& iEvent, const edm::EventSetup& eSetu
 	    _tauProbePhi = tau->phi();
 	    _tauProbeCharge = tau->charge();
 	    _tauProbeDM = tau->decayMode();
-            tauTrkPt_ = tau->leadChargedHadrCand()->pt();
+            tauProbeTrkPt_ = tau->leadChargedHadrCand()->pt();
+	    _tauProbeByIsolationMVArun2017v2DBoldDMwLTraw2017 = tau->tauID("byIsolationMVArun2017v2DBoldDMwLTraw2017");
+	    _tauProbeByVVLooseIsolationMVArun2017v2DBoldDMwLT2017 = tau->tauID("byVVLooseIsolationMVArun2017v2DBoldDMwLT2017");
 	    _tauProbeByVLooseIsolationMVArun2017v2DBoldDMwLT2017 = tau->tauID("byVLooseIsolationMVArun2017v2DBoldDMwLT2017");
 	    _tauProbeByLooseIsolationMVArun2017v2DBoldDMwLT2017 = tau->tauID("byLooseIsolationMVArun2017v2DBoldDMwLT2017");
 	    _tauProbeByMediumIsolationMVArun2017v2DBoldDMwLT2017 = tau->tauID("byMediumIsolationMVArun2017v2DBoldDMwLT2017");
 	    _tauProbeByTightIsolationMVArun2017v2DBoldDMwLT2017 = tau->tauID("byTightIsolationMVArun2017v2DBoldDMwLT2017");
 	    _tauProbeByVTightIsolationMVArun2017v2DBoldDMwLT2017 = tau->tauID("byVTightIsolationMVArun2017v2DBoldDMwLT2017");	    
+	    _tauProbeByVVTightIsolationMVArun2017v2DBoldDMwLT2017 = tau->tauID("byVVTightIsolationMVArun2017v2DBoldDMwLT2017");	    
+            _tauProbeByVVLooseIsolationMVArun2017v2DBnewDMwLT2017 = tau->tauID("byVVLooseIsolationMVArun2017v2DBnewDMwLT2017");
+            _tauProbeByVLooseIsolationMVArun2017v2DBnewDMwLT2017 = tau->tauID("byVLooseIsolationMVArun2017v2DBnewDMwLT2017");
+            _tauProbeByLooseIsolationMVArun2017v2DBnewDMwLT2017 = tau->tauID("byLooseIsolationMVArun2017v2DBnewDMwLT2017");
+            _tauProbeByMediumIsolationMVArun2017v2DBnewDMwLT2017 = tau->tauID("byMediumIsolationMVArun2017v2DBnewDMwLT2017");
+            _tauProbeByTightIsolationMVArun2017v2DBnewDMwLT2017 = tau->tauID("byTightIsolationMVArun2017v2DBnewDMwLT2017");
+            _tauProbeByVTightIsolationMVArun2017v2DBnewDMwLT2017 = tau->tauID("byVTightIsolationMVArun2017v2DBnewDMwLT2017");
+            _tauProbeByVVTightIsolationMVArun2017v2DBnewDMwLT2017 = tau->tauID("byVVTightIsolationMVArun2017v2DBnewDMwLT2017");
+            _tauProbeByLooseCombinedIsolationDeltaBetaCorr3Hits = tau->tauID("byLooseCombinedIsolationDeltaBetaCorr3Hits");
+            _tauProbeByMediumCombinedIsolationDeltaBetaCorr3Hits = tau->tauID("byMediumCombinedIsolationDeltaBetaCorr3Hits");
+            _tauProbeByTightCombinedIsolationDeltaBetaCorr3Hits = tau->tauID("byTightCombinedIsolationDeltaBetaCorr3Hits");
 	    _tauProbeAgainstMuonLoose3 = tau->tauID("againstMuonLoose3");
 	    _tauProbeAgainstMuonTight3 = tau->tauID("againstMuonTight3");
 	    _tauProbeAgainstElectronVLooseMVA6 = tau->tauID("againstElectronVLooseMVA6");
@@ -735,6 +827,13 @@ void NtuplizerEG::analyze(const edm::Event& iEvent, const edm::EventSetup& eSetu
 	_eleProbePhi = eleProbe->phi();
 	_eleProbeSclEt = (eleProbe->superCluster()->energy()) / cosh(eleProbe->superCluster()->eta()) ;
 	_eleProbeCharge = eleProbe->charge();
+        eleProbeSclEtaWidth_ = eleProbe->superCluster()->etaWidth();
+        eleProbeSclPhiWidth_ = eleProbe->superCluster()->phiWidth();
+        
+        // eleProbeEcalIso_ = eleProbe->ecalIso();
+        // eleProbeEcalPFClusterIso_ = eleProbe->ecalPFClusterIso();
+        // eleProbe...ID_ = eleProbe->electronID();
+        // eleProbePassConversionVeto_ = eleProbe->passConversionVeto();
 
 
 	_eleTagPt = eleTag->pt();
@@ -744,6 +843,20 @@ void NtuplizerEG::analyze(const edm::Event& iEvent, const edm::EventSetup& eSetu
 
 	_Nvtx = vertices->size();
 
+        nTruePU_ = -99;
+        if (_useGenMatch)
+        {
+            std::vector<PileupSummaryInfo>::const_iterator PVI;
+            for(PVI = puInfo->begin(); PVI != puInfo->end(); ++PVI)
+            {
+                if(PVI->getBunchCrossing() == 0)
+                {
+                    float nTrueInt = PVI->getTrueNumInteractions();
+                    nTruePU_ = nTrueInt;
+                    break;
+                }
+            }
+        }
  
 	_eleProbeTriggerBits = _eleProbeTriggerBitSet.to_ulong();
 	_eleTagTriggerBits = _eleTagTriggerBitSet.to_ulong();
