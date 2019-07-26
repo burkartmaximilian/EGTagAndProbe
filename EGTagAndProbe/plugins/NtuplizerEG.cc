@@ -64,7 +64,7 @@ class NtuplizerEG : public edm::EDAnalyzer {
         virtual void endRun(edm::Run const&, edm::EventSetup const&);
         void Initialize();
         bool hasFilters(const pat::TriggerObjectStandAlone&  obj , const std::vector<std::string>& filtersToLookFor);
-        bool matchToTruth(const edm::Ptr<reco::GsfElectron> ele, 
+        bool matchToTruth(const edm::Ptr<pat::Electron> ele,
 			  const edm::Handle<edm::View<reco::GenParticle>>  &genParticles);
 
         TTree *_tree;
@@ -86,7 +86,7 @@ class NtuplizerEG : public edm::EDAnalyzer {
         int _eleProbeCharge;
         float eleProbeSclEtaWidth_;
         float eleProbeSclPhiWidth_;
-        
+
         float eleProbeEcalIso_;
         float eleProbeEcalPFClusterIso_;
         //bool eleProbe...ID_;
@@ -94,14 +94,17 @@ class NtuplizerEG : public edm::EDAnalyzer {
 
         float _tauProbePt;
         float _tauProbeEta;
-        float _tauProbePhi;       
+        float _tauProbePhi;
         int _tauProbeCharge;
         int _tauProbeDM;
         float tauProbeTrkPt_;
+        bool tauDecayModeFinding_;
+        bool tauDecayModeFindingNewDMs_;
 
         bool _tauProbeByLooseCombinedIsolationDeltaBetaCorr3Hits;
         bool _tauProbeByMediumCombinedIsolationDeltaBetaCorr3Hits;
         bool _tauProbeByTightCombinedIsolationDeltaBetaCorr3Hits;
+
         float _tauProbeByIsolationMVArun2017v2DBoldDMwLTraw2017;
         bool _tauProbeByVVLooseIsolationMVArun2017v2DBoldDMwLT2017;
         bool _tauProbeByVLooseIsolationMVArun2017v2DBoldDMwLT2017;
@@ -110,6 +113,7 @@ class NtuplizerEG : public edm::EDAnalyzer {
         bool _tauProbeByTightIsolationMVArun2017v2DBoldDMwLT2017;
         bool _tauProbeByVTightIsolationMVArun2017v2DBoldDMwLT2017;
         bool _tauProbeByVVTightIsolationMVArun2017v2DBoldDMwLT2017;
+
         float _tauProbeByIsolationMVArun2017v2DBnewDMwLTraw2017;
         bool _tauProbeByVVLooseIsolationMVArun2017v2DBnewDMwLT2017;
         bool _tauProbeByVLooseIsolationMVArun2017v2DBnewDMwLT2017;
@@ -118,6 +122,40 @@ class NtuplizerEG : public edm::EDAnalyzer {
         bool _tauProbeByTightIsolationMVArun2017v2DBnewDMwLT2017;
         bool _tauProbeByVTightIsolationMVArun2017v2DBnewDMwLT2017;
         bool _tauProbeByVVTightIsolationMVArun2017v2DBnewDMwLT2017;
+
+        float _tauByDeepTau2017v2VSjetraw;
+        bool _tauByVVVLooseDeepTau2017v2VSjet;
+        bool _tauByVVLooseDeepTau2017v2VSjet;
+        bool _tauByVLooseDeepTau2017v2VSjet;
+        bool _tauByLooseDeepTau2017v2VSjet;
+        bool _tauByMediumDeepTau2017v2VSjet;
+        bool _tauByTightDeepTau2017v2VSjet;
+        bool _tauByVTightDeepTau2017v2VSjet;
+        bool _tauByVVTightDeepTau2017v2VSjet;
+
+        float _tauByDeepTau2017v2VSeraw;
+        bool _tauByVVVLooseDeepTau2017v2VSe;
+        bool _tauByVVLooseDeepTau2017v2VSe;
+        bool _tauByVLooseDeepTau2017v2VSe;
+        bool _tauByLooseDeepTau2017v2VSe;
+        bool _tauByMediumDeepTau2017v2VSe;
+        bool _tauByTightDeepTau2017v2VSe;
+        bool _tauByVTightDeepTau2017v2VSe;
+        bool _tauByVVTightDeepTau2017v2VSe;
+
+        float _tauByDeepTau2017v2VSmuraw;
+        bool _tauByVLooseDeepTau2017v2VSmu;
+        bool _tauByLooseDeepTau2017v2VSmu;
+        bool _tauByMediumDeepTau2017v2VSmu;
+        bool _tauByTightDeepTau2017v2VSmu;
+
+        bool _againstMuonLoose3;
+        bool _againstMuonTight3;
+        bool _againstElectronVLooseMVA6;
+        bool _againstElectronLooseMVA6;
+        bool _againstElectronMediumMVA6;
+        bool _againstElectronTightMVA6;
+        bool _againstElectronVTightMVA6;
 
         bool _tauProbeAgainstMuonLoose3;
         bool _tauProbeAgainstMuonTight3;
@@ -130,6 +168,7 @@ class NtuplizerEG : public edm::EDAnalyzer {
         vector<float> _hltPt;
         vector<float> _hltEta;
         vector<float> _hltPhi;
+        vector<float> _hltMass;
         int _l1tQual;
         float _l1tPt;
         float _l1tEta;
@@ -156,21 +195,21 @@ class NtuplizerEG : public edm::EDAnalyzer {
         float _Mee;
         int _Nvtx;
         float nTruePU_;
-        
+
         int _hasL1[100];
         int _hasL1_iso[100];
 
-        edm::EDGetTokenT<edm::View<reco::GsfElectron> >  _electronsTag;
+        edm::EDGetTokenT<edm::View<pat::Electron> >  _electronsTag;
         edm::EDGetTokenT<pat::TauRefVector>   _tauTag;
         edm::EDGetTokenT<edm::View<reco::GenParticle> > _genParticlesTag;
-        edm::EDGetTokenT<edm::ValueMap<bool> > _eleLooseIdMapTag;
-        edm::EDGetTokenT<edm::ValueMap<bool> > _eleMediumIdMapTag;
         edm::EDGetTokenT<pat::TriggerObjectStandAloneCollection> _triggerObjects;
         edm::EDGetTokenT<edm::TriggerResults> _triggerBits;
         edm::EDGetTokenT<l1t::EGammaBxCollection> _L1EGTag  ;
         edm::EDGetTokenT<l1t::EGammaBxCollection> _L1EmuEGTag  ;
         edm::EDGetTokenT<std::vector<reco::Vertex>> _VtxTag;
         edm::EDGetTokenT<std::vector<PileupSummaryInfo>> _puTag;
+        std::string eleLooseId_;
+        std::string eleMediumId_;
 
         bool _useGenMatch;
         bool _useHLTMatch;
@@ -208,17 +247,17 @@ class NtuplizerEG : public edm::EDAnalyzer {
 
 // ----Constructor and Destructor -----
 NtuplizerEG::NtuplizerEG(const edm::ParameterSet& iConfig) :
-_electronsTag       (consumes<edm::View<reco::GsfElectron> >                     (iConfig.getParameter<edm::InputTag>("electrons"))),
+_electronsTag       (consumes<edm::View<pat::Electron> >                     (iConfig.getParameter<edm::InputTag>("electrons"))),
 _tauTag         (consumes<pat::TauRefVector>                      (iConfig.getParameter<edm::InputTag>("taus"))),
 _genParticlesTag (consumes<edm::View<reco::GenParticle> > (iConfig.getParameter<edm::InputTag>("genParticles"))),
-_eleLooseIdMapTag  (consumes<edm::ValueMap<bool> >(iConfig.getParameter<edm::InputTag>("eleLooseIdMap"))),
-_eleMediumIdMapTag  (consumes<edm::ValueMap<bool> >(iConfig.getParameter<edm::InputTag>("eleMediumIdMap"))),
 _triggerObjects (consumes<pat::TriggerObjectStandAloneCollection> (iConfig.getParameter<edm::InputTag>("triggerSet"))),
 _triggerBits    (consumes<edm::TriggerResults>                    (iConfig.getParameter<edm::InputTag>("triggerResultsLabel"))),
 _L1EGTag       (consumes<l1t::EGammaBxCollection>                   (iConfig.getParameter<edm::InputTag>("L1EG"))),
 _L1EmuEGTag    (consumes<l1t::EGammaBxCollection>                   (iConfig.getParameter<edm::InputTag>("L1EmuEG"))),
 _VtxTag         (consumes<std::vector<reco::Vertex>>              (iConfig.getParameter<edm::InputTag>("Vertices"))),
 _puTag	(consumes<std::vector<PileupSummaryInfo>> (iConfig.getParameter<edm::InputTag>("puInfo"))),
+eleLooseId_ (iConfig.getParameter<std::string>("eleLooseId")),
+eleMediumId_ (iConfig.getParameter<std::string>("eleMediumId")),
 filterPath_                                                       (iConfig.getParameter<std::string>("filterPath"))
 {
     _treeName = iConfig.getParameter<std::string>("treeName");
@@ -349,7 +388,7 @@ void NtuplizerEG::Initialize() {
     _eleProbeCharge = 0;
     eleProbeSclEtaWidth_ = -1.;
     eleProbeSclPhiWidth_ = -1.;
-    
+
     eleProbeEcalIso_ = -1.;
     eleProbeEcalPFClusterIso_ = -1.;
     //eleProbe...ID_ = false;
@@ -361,9 +400,14 @@ void NtuplizerEG::Initialize() {
     _tauProbeCharge = 0;
     _tauProbeDM = -1;
     tauProbeTrkPt_ = -1;
+
+    tauDecayModeFinding_ = 0;
+    tauDecayModeFindingNewDMs_ = 0;
+
     _tauProbeByLooseCombinedIsolationDeltaBetaCorr3Hits = 0;
     _tauProbeByMediumCombinedIsolationDeltaBetaCorr3Hits = 0;
     _tauProbeByTightCombinedIsolationDeltaBetaCorr3Hits = 0;
+
     _tauProbeByIsolationMVArun2017v2DBoldDMwLTraw2017 = -1.;
     _tauProbeByVVLooseIsolationMVArun2017v2DBoldDMwLT2017 = 0;
     _tauProbeByVLooseIsolationMVArun2017v2DBoldDMwLT2017 = 0;
@@ -372,6 +416,7 @@ void NtuplizerEG::Initialize() {
     _tauProbeByTightIsolationMVArun2017v2DBoldDMwLT2017 = 0;
     _tauProbeByVTightIsolationMVArun2017v2DBoldDMwLT2017 = 0;
     _tauProbeByVVTightIsolationMVArun2017v2DBoldDMwLT2017 = 0;
+
     _tauProbeByIsolationMVArun2017v2DBnewDMwLTraw2017 = -1.;
     _tauProbeByVVLooseIsolationMVArun2017v2DBnewDMwLT2017 = 0;
     _tauProbeByVLooseIsolationMVArun2017v2DBnewDMwLT2017 = 0;
@@ -380,6 +425,33 @@ void NtuplizerEG::Initialize() {
     _tauProbeByTightIsolationMVArun2017v2DBnewDMwLT2017 = 0;
     _tauProbeByVTightIsolationMVArun2017v2DBnewDMwLT2017 = 0;
     _tauProbeByVVTightIsolationMVArun2017v2DBnewDMwLT2017 = 0;
+
+    _tauByDeepTau2017v2VSjetraw = -1.;
+    _tauByVVVLooseDeepTau2017v2VSjet = 0;
+    _tauByVVLooseDeepTau2017v2VSjet = 0;
+    _tauByVLooseDeepTau2017v2VSjet = 0;
+    _tauByLooseDeepTau2017v2VSjet = 0;
+    _tauByMediumDeepTau2017v2VSjet = 0;
+    _tauByTightDeepTau2017v2VSjet = 0;
+    _tauByVTightDeepTau2017v2VSjet = 0;
+    _tauByVVTightDeepTau2017v2VSjet = 0;
+
+    _tauByDeepTau2017v2VSeraw = -1.;
+    _tauByVVVLooseDeepTau2017v2VSe = 0;
+    _tauByVVLooseDeepTau2017v2VSe = 0;
+    _tauByVLooseDeepTau2017v2VSe = 0;
+    _tauByLooseDeepTau2017v2VSe = 0;
+    _tauByMediumDeepTau2017v2VSe = 0;
+    _tauByTightDeepTau2017v2VSe = 0;
+    _tauByVTightDeepTau2017v2VSe = 0;
+    _tauByVVTightDeepTau2017v2VSe = 0;
+    
+    _tauByDeepTau2017v2VSmuraw = -1.;
+    _tauByVLooseDeepTau2017v2VSmu = 0;
+    _tauByLooseDeepTau2017v2VSmu = 0;
+    _tauByMediumDeepTau2017v2VSmu = 0;
+    _tauByTightDeepTau2017v2VSmu = 0;
+
     _tauProbeAgainstMuonLoose3 = 0;
     _tauProbeAgainstMuonTight3 = 0;
     _tauProbeAgainstElectronVLooseMVA6 = 0;
@@ -394,10 +466,11 @@ void NtuplizerEG::Initialize() {
     _eleTagCharge = 0;
     _Mee = 0;
     _isTagHLTmatched = false;
-    _isProbeHLTmatched = false;    
+    _isProbeHLTmatched = false;
     _hltPt.assign(NUMBER_OF_MAXIMUM_TRIGGERS,-1);
     _hltEta.assign(NUMBER_OF_MAXIMUM_TRIGGERS,666);
     _hltPhi.assign(NUMBER_OF_MAXIMUM_TRIGGERS,666);
+    _hltMass.assign(NUMBER_OF_MAXIMUM_TRIGGERS,666);
     _l1tPt = -1;
     _l1tEta = 666;
     _l1tPhi = 666;
@@ -445,10 +518,11 @@ void NtuplizerEG::beginJob()
     _tree -> Branch("tauDM",  &_tauProbeDM,  "tauDM/I");
     _tree -> Branch("tauCharge",  &_tauProbeCharge,  "tauCharge/I");
     _tree -> Branch("tauTrkPt", &tauProbeTrkPt_, "tauTrkPt/F");
-    
+
     _tree -> Branch("tauByLooseCombinedIsolationDeltaBetaCorr3Hits", &_tauProbeByLooseCombinedIsolationDeltaBetaCorr3Hits, "tauByLooseCombinedIsolationDeltaBetaCorr3Hits/O");
     _tree -> Branch("tauByMediumCombinedIsolationDeltaBetaCorr3Hits", &_tauProbeByMediumCombinedIsolationDeltaBetaCorr3Hits, "tauByMediumCombinedIsolationDeltaBetaCorr3Hits/O");
     _tree -> Branch("tauByTightCombinedIsolationDeltaBetaCorr3Hits", &_tauProbeByTightCombinedIsolationDeltaBetaCorr3Hits, "tauByTightCombinedIsolationDeltaBetaCorr3Hits/O");
+
     _tree -> Branch("tauByIsolationMVArun2017v2DBoldDMwLTraw2017",  &_tauProbeByIsolationMVArun2017v2DBoldDMwLTraw2017,  "tauByIsolationMVArun2017v2DBoldDMwLTraw2017/F");
     _tree -> Branch("tauByVVLooseIsolationMVArun2017v2DBoldDMwLT2017",  &_tauProbeByVVLooseIsolationMVArun2017v2DBoldDMwLT2017,  "tauByVVLooseIsolationMVArun2017v2DBoldDMwLT2017/O");
     _tree -> Branch("tauByVLooseIsolationMVArun2017v2DBoldDMwLT2017",  &_tauProbeByVLooseIsolationMVArun2017v2DBoldDMwLT2017,  "tauByVLooseIsolationMVArun2017v2DBoldDMwLT2017/O");
@@ -457,6 +531,7 @@ void NtuplizerEG::beginJob()
     _tree -> Branch("tauByTightIsolationMVArun2017v2DBoldDMwLT2017",  &_tauProbeByTightIsolationMVArun2017v2DBoldDMwLT2017,  "tauByTightIsolationMVArun2017v2DBoldDMwLT2017/O");
     _tree -> Branch("tauByVTightIsolationMVArun2017v2DBoldDMwLT2017",  &_tauProbeByVTightIsolationMVArun2017v2DBoldDMwLT2017,  "tauByVTightIsolationMVArun2017v2DBoldDMwLT2017/O");
     _tree -> Branch("tauByVVTightIsolationMVArun2017v2DBoldDMwLT2017",  &_tauProbeByVVTightIsolationMVArun2017v2DBoldDMwLT2017,  "tauByVVTightIsolationMVArun2017v2DBoldDMwLT2017/O");
+
     _tree -> Branch("tauByIsolationMVArun2017v2DBnewDMwLTraw2017",  &_tauProbeByIsolationMVArun2017v2DBnewDMwLTraw2017,  "tauByIsolationMVArun2017v2DBnewDMwLTraw2017/F");
     _tree -> Branch("tauByVVLooseIsolationMVArun2017v2DBnewDMwLT2017",  &_tauProbeByVVLooseIsolationMVArun2017v2DBnewDMwLT2017,  "tauByVVLooseIsolationMVArun2017v2DBnewDMwLT2017/O");
     _tree -> Branch("tauByVLooseIsolationMVArun2017v2DBnewDMwLT2017",  &_tauProbeByVLooseIsolationMVArun2017v2DBnewDMwLT2017,  "tauByVLooseIsolationMVArun2017v2DBnewDMwLT2017/O");
@@ -465,6 +540,33 @@ void NtuplizerEG::beginJob()
     _tree -> Branch("tauByTightIsolationMVArun2017v2DBnewDMwLT2017",  &_tauProbeByTightIsolationMVArun2017v2DBnewDMwLT2017,  "tauByTightIsolationMVArun2017v2DBnewDMwLT2017/O");
     _tree -> Branch("tauByVTightIsolationMVArun2017v2DBnewDMwLT2017",  &_tauProbeByVTightIsolationMVArun2017v2DBnewDMwLT2017,  "tauByVTightIsolationMVArun2017v2DBnewDMwLT2017/O");
     _tree -> Branch("tauByVVTightIsolationMVArun2017v2DBnewDMwLT2017",  &_tauProbeByVVTightIsolationMVArun2017v2DBnewDMwLT2017,  "tauByVVTightIsolationMVArun2017v2DBnewDMwLT2017/O");
+
+    _tree->Branch("byDeepTau2017v2VSjetraw", &_tauByDeepTau2017v2VSjetraw, "byDeepTau2017v2VSjetraw/F");
+    _tree->Branch("byVVVLooseDeepTau2017v2VSjet", &_tauByVVVLooseDeepTau2017v2VSjet, "byVVVLooseDeepTau2017v2VSjet/O");
+    _tree->Branch("byVVLooseDeepTau2017v2VSjet", &_tauByVVLooseDeepTau2017v2VSjet, "byVVLooseDeepTau2017v2VSjet/O");
+    _tree->Branch("byVLooseDeepTau2017v2VSjet", &_tauByVLooseDeepTau2017v2VSjet, "byVLooseDeepTau2017v2VSjet/O");
+    _tree->Branch("byLooseDeepTau2017v2VSjet", &_tauByLooseDeepTau2017v2VSjet, "byLooseDeepTau2017v2VSjet/O");
+    _tree->Branch("byMediumDeepTau2017v2VSjet", &_tauByMediumDeepTau2017v2VSjet, "byMediumDeepTau2017v2VSjet/O");
+    _tree->Branch("byTightDeepTau2017v2VSjet", &_tauByTightDeepTau2017v2VSjet, "byTightDeepTau2017v2VSjet/O");
+    _tree->Branch("byVTightDeepTau2017v2VSjet", &_tauByVTightDeepTau2017v2VSjet, "byVTightDeepTau2017v2VSjet/O");
+    _tree->Branch("byVVTightDeepTau2017v2VSjet", &_tauByVVTightDeepTau2017v2VSjet, "byVVTightDeepTau2017v2VSjet/O");
+
+    _tree->Branch("byDeepTau2017v2VSeraw", &_tauByDeepTau2017v2VSeraw, "byDeepTau2017v2VSeraw/F");
+    _tree->Branch("byVVVLooseDeepTau2017v2VSe", &_tauByVVVLooseDeepTau2017v2VSe, "byVVVLooseDeepTau2017v2VSe/O");
+    _tree->Branch("byVVLooseDeepTau2017v2VSe", &_tauByVVLooseDeepTau2017v2VSe, "byVVLooseDeepTau2017v2VSe/O");
+    _tree->Branch("byVLooseDeepTau2017v2VSe", &_tauByVLooseDeepTau2017v2VSe, "byVLooseDeepTau2017v2VSe/O");
+    _tree->Branch("byLooseDeepTau2017v2VSe", &_tauByLooseDeepTau2017v2VSe, "byLooseDeepTau2017v2VSe/O");
+    _tree->Branch("byMediumDeepTau2017v2VSe", &_tauByMediumDeepTau2017v2VSe, "byMediumDeepTau2017v2VSe/O");
+    _tree->Branch("byTightDeepTau2017v2VSe", &_tauByTightDeepTau2017v2VSe, "byTightDeepTau2017v2VSe/O");
+    _tree->Branch("byVTightDeepTau2017v2VSe", &_tauByVTightDeepTau2017v2VSe, "byVTightDeepTau2017v2VSe/O");
+    _tree->Branch("byVVTightDeepTau2017v2VSe", &_tauByVVTightDeepTau2017v2VSe, "byVVTightDeepTau2017v2VSe/O");
+    
+    _tree->Branch("byDeepTau2017v2VSmuraw", &_tauByDeepTau2017v2VSmuraw, "byDeepTau2017v2VSmuraw/F");
+    _tree->Branch("byVLooseDeepTau2017v2VSmu", &_tauByVLooseDeepTau2017v2VSmu, "byVLooseDeepTau2017v2VSmu/O");
+    _tree->Branch("byLooseDeepTau2017v2VSmu", &_tauByLooseDeepTau2017v2VSmu, "byLooseDeepTau2017v2VSmu/O");
+    _tree->Branch("byMediumDeepTau2017v2VSmu", &_tauByMediumDeepTau2017v2VSmu, "byMediumDeepTau2017v2VSmu/O");
+    _tree->Branch("byTightDeepTau2017v2VSmu", &_tauByTightDeepTau2017v2VSmu, "byTightDeepTau2017v2VSmu/O");
+
     _tree -> Branch("tauAgainstMuonLoose3", &_tauProbeAgainstMuonLoose3, "tauAgainstMuonLoose3/O");
     _tree -> Branch("tauAgainstMuonTight3", &_tauProbeAgainstMuonTight3, "tauAgainstMuonTight3/O");
     _tree -> Branch("tauAgainstElectronVLooseMVA6", &_tauProbeAgainstElectronVLooseMVA6, "tauAgainstElectronVLooseMVA6/O");
@@ -499,6 +601,7 @@ void NtuplizerEG::beginJob()
     _tree -> Branch("hltPt",  &_hltPt);
     _tree -> Branch("hltEta", &_hltEta);
     _tree -> Branch("hltPhi", &_hltPhi);
+    _tree -> Branch("hltMass", &_hltMass);
     _tree -> Branch("l1tPt",  &_l1tPt,  "l1tPt/F");
     _tree -> Branch("l1tEta", &_l1tEta, "l1tEta/F");
     _tree -> Branch("l1tPhi", &_l1tPhi, "l1tPhi/F");
@@ -523,7 +626,7 @@ void NtuplizerEG::beginJob()
     _tree -> Branch("Nvtx", &_Nvtx, "Nvtx/I");
     _tree->Branch("nTruePU", &nTruePU_, "nTruePU/F");
 
-    for(unsigned int i=0;i<100;i++){  
+    for(unsigned int i=0;i<100;i++){
       TString name = Form("hasL1_%i",i);
       _tree -> Branch(name,  &_hasL1[i],  name+"/I");
       TString name_iso = Form("hasL1_iso_%i",i);
@@ -558,11 +661,9 @@ void NtuplizerEG::analyze(const edm::Event& iEvent, const edm::EventSetup& eSetu
 
 
     // search for the tag in the event
-    edm::Handle<edm::View<reco::GsfElectron> > electrons;
+    edm::Handle<edm::View<pat::Electron> > electrons;
     edm::Handle<pat::TauRefVector>  taus;
     edm::Handle<edm::View<reco::GenParticle> > genParticles;
-    edm::Handle<edm::ValueMap<bool> > loose_id_decisions;
-    edm::Handle<edm::ValueMap<bool> > medium_id_decisions;
     edm::Handle<pat::TriggerObjectStandAloneCollection> triggerObjects;
     edm::Handle<edm::TriggerResults> triggerBits;
     edm::Handle<std::vector<reco::Vertex> >  vertices;
@@ -570,8 +671,6 @@ void NtuplizerEG::analyze(const edm::Event& iEvent, const edm::EventSetup& eSetu
 
     iEvent.getByToken(_electronsTag, electrons);
     iEvent.getByToken(_tauTag, taus);
-    iEvent.getByToken(_eleLooseIdMapTag, loose_id_decisions);
-    iEvent.getByToken(_eleMediumIdMapTag, medium_id_decisions);
     if(_useHLTMatch)
       iEvent.getByToken(_triggerObjects, triggerObjects);
     iEvent.getByToken(_triggerBits, triggerBits);
@@ -585,18 +684,18 @@ void NtuplizerEG::analyze(const edm::Event& iEvent, const edm::EventSetup& eSetu
     const edm::TriggerNames &names = iEvent.triggerNames(*triggerBits);
 
     for (unsigned int i = 0; i< electrons->size(); ++i){
-      
+
       const auto eleTag = electrons->ptrAt(i);
-      int isTagIDMedium = (*medium_id_decisions)[eleTag];
+      int isTagIDMedium = eleTag->electronID(eleMediumId_);
       if(!isTagIDMedium || eleTag->p4().Pt()<30) continue;
-      
+
 
       for (unsigned int j = 0; j< electrons->size(); ++j){
 
-	if(i==j) continue;	
+	if(i==j) continue;
 
 	const auto eleProbe = electrons->ptrAt(j);
-	int isProbeLoose = (*loose_id_decisions)[eleProbe];
+	int isProbeLoose = eleProbe->electronID(eleLooseId_);
 	float eleProbeEta = eleProbe->p4().Eta();
 	if(!isProbeLoose || (abs(eleProbeEta)>1.4442 && abs(eleProbeEta)<1.566)) continue;
 
@@ -626,10 +725,10 @@ void NtuplizerEG::analyze(const edm::Event& iEvent, const edm::EventSetup& eSetu
 	    {
 
 	      //if(!obj.hasCollection("hltEgammaCandidates::HLT")) continue;
-	      
+
 	      const float dR_tag = deltaR (*eleTag, obj);
 	      if ( dR_tag < 0.3)
-		{		  
+		{
 
 		  obj.unpackPathNames(names);
 
@@ -637,19 +736,19 @@ void NtuplizerEG::analyze(const edm::Event& iEvent, const edm::EventSetup& eSetu
 
 		  //Looking for the path
 		  unsigned int x = 0;
-		  bool foundTrigger = false;	
+		  bool foundTrigger = false;
 
 		  for (const tParameterSet& parameter : _parametersTag)
 		    {
 		      if ((parameter.hltPathIndex >= 0)&&(obj.hasPathName(triggerNames[parameter.hltPathIndex], true, false)))
 			{
-			  foundTrigger = true;			  
+			  foundTrigger = true;
 			  //Retrieving filter list for the event
 			  const std::vector<std::string>& filters = (parameter.hltFilters1);
 			  if (hasFilters(obj, filters))
 			    {
-			      //std::cout << "#### FOUND ELE WITH HLT PATH " << x << " ####" << std::endl;			     
-			      _eleTagTriggerBitSet[x] = true;			      
+			      //std::cout << "#### FOUND ELE WITH HLT PATH " << x << " ####" << std::endl;
+			      _eleTagTriggerBitSet[x] = true;
 			    }
 			}
 		      x++;
@@ -659,13 +758,13 @@ void NtuplizerEG::analyze(const edm::Event& iEvent, const edm::EventSetup& eSetu
 		    _foundTag++;
 		  }
 		}
-	      
-	      
+
+
 	      const float dR_probe = deltaR (*eleProbe, obj);
 	      if ( dR_probe < 0.3)
 		{
 		  _isProbeHLTmatched = true;
-		  
+
 		  obj.unpackPathNames(names);
 		  const edm::TriggerNames::Strings& triggerNames = names.triggerNames();
 		  //Looking for the path
@@ -675,7 +774,7 @@ void NtuplizerEG::analyze(const edm::Event& iEvent, const edm::EventSetup& eSetu
 		    {
 		      if ((parameter.hltPathIndex >= 0)&&(obj.hasPathName(triggerNames[parameter.hltPathIndex], true, false)))
 			{
-			  foundTrigger = true;			  
+			  foundTrigger = true;
 			  const std::vector<std::string>& filters = (parameter.hltFilters1);
                           //std::cout << "HLTFilter: " << parameter.hltFilters1.at(0) << std::endl;
 			  if (hasFilters(obj, filters))
@@ -705,13 +804,13 @@ void NtuplizerEG::analyze(const edm::Event& iEvent, const edm::EventSetup& eSetu
                     }
                 }
 	      }
-              
+
 
 	    }
 
 	  if(!(_isTagHLTmatched)) continue;
 
-	}      
+	}
 
 
 	// Tau matching
@@ -727,14 +826,22 @@ void NtuplizerEG::analyze(const edm::Event& iEvent, const edm::EventSetup& eSetu
 	    _tauProbeCharge = tau->charge();
 	    _tauProbeDM = tau->decayMode();
             tauProbeTrkPt_ = tau->leadChargedHadrCand()->pt();
+            tauDecayModeFinding_ = tau->tauID("decayModeFindingNewDMs");
+            tauDecayModeFindingNewDMs_ = tau->tauID("decayModeFinding");
+            
+            _tauProbeByLooseCombinedIsolationDeltaBetaCorr3Hits = tau->tauID("byLooseCombinedIsolationDeltaBetaCorr3Hits");
+            _tauProbeByMediumCombinedIsolationDeltaBetaCorr3Hits = tau->tauID("byMediumCombinedIsolationDeltaBetaCorr3Hits");
+            _tauProbeByTightCombinedIsolationDeltaBetaCorr3Hits = tau->tauID("byTightCombinedIsolationDeltaBetaCorr3Hits");
+
 	    _tauProbeByIsolationMVArun2017v2DBoldDMwLTraw2017 = tau->tauID("byIsolationMVArun2017v2DBoldDMwLTraw2017");
 	    _tauProbeByVVLooseIsolationMVArun2017v2DBoldDMwLT2017 = tau->tauID("byVVLooseIsolationMVArun2017v2DBoldDMwLT2017");
 	    _tauProbeByVLooseIsolationMVArun2017v2DBoldDMwLT2017 = tau->tauID("byVLooseIsolationMVArun2017v2DBoldDMwLT2017");
 	    _tauProbeByLooseIsolationMVArun2017v2DBoldDMwLT2017 = tau->tauID("byLooseIsolationMVArun2017v2DBoldDMwLT2017");
 	    _tauProbeByMediumIsolationMVArun2017v2DBoldDMwLT2017 = tau->tauID("byMediumIsolationMVArun2017v2DBoldDMwLT2017");
 	    _tauProbeByTightIsolationMVArun2017v2DBoldDMwLT2017 = tau->tauID("byTightIsolationMVArun2017v2DBoldDMwLT2017");
-	    _tauProbeByVTightIsolationMVArun2017v2DBoldDMwLT2017 = tau->tauID("byVTightIsolationMVArun2017v2DBoldDMwLT2017");	    
-	    _tauProbeByVVTightIsolationMVArun2017v2DBoldDMwLT2017 = tau->tauID("byVVTightIsolationMVArun2017v2DBoldDMwLT2017");	    
+	    _tauProbeByVTightIsolationMVArun2017v2DBoldDMwLT2017 = tau->tauID("byVTightIsolationMVArun2017v2DBoldDMwLT2017");
+	    _tauProbeByVVTightIsolationMVArun2017v2DBoldDMwLT2017 = tau->tauID("byVVTightIsolationMVArun2017v2DBoldDMwLT2017");
+
             _tauProbeByVVLooseIsolationMVArun2017v2DBnewDMwLT2017 = tau->tauID("byVVLooseIsolationMVArun2017v2DBnewDMwLT2017");
             _tauProbeByVLooseIsolationMVArun2017v2DBnewDMwLT2017 = tau->tauID("byVLooseIsolationMVArun2017v2DBnewDMwLT2017");
             _tauProbeByLooseIsolationMVArun2017v2DBnewDMwLT2017 = tau->tauID("byLooseIsolationMVArun2017v2DBnewDMwLT2017");
@@ -742,9 +849,33 @@ void NtuplizerEG::analyze(const edm::Event& iEvent, const edm::EventSetup& eSetu
             _tauProbeByTightIsolationMVArun2017v2DBnewDMwLT2017 = tau->tauID("byTightIsolationMVArun2017v2DBnewDMwLT2017");
             _tauProbeByVTightIsolationMVArun2017v2DBnewDMwLT2017 = tau->tauID("byVTightIsolationMVArun2017v2DBnewDMwLT2017");
             _tauProbeByVVTightIsolationMVArun2017v2DBnewDMwLT2017 = tau->tauID("byVVTightIsolationMVArun2017v2DBnewDMwLT2017");
-            _tauProbeByLooseCombinedIsolationDeltaBetaCorr3Hits = tau->tauID("byLooseCombinedIsolationDeltaBetaCorr3Hits");
-            _tauProbeByMediumCombinedIsolationDeltaBetaCorr3Hits = tau->tauID("byMediumCombinedIsolationDeltaBetaCorr3Hits");
-            _tauProbeByTightCombinedIsolationDeltaBetaCorr3Hits = tau->tauID("byTightCombinedIsolationDeltaBetaCorr3Hits");
+
+            _tauByDeepTau2017v2VSjetraw = tau->tauID("byDeepTau2017v2VSjetraw");
+            _tauByVVVLooseDeepTau2017v2VSjet = tau->tauID("byVVVLooseDeepTau2017v2VSjet");
+            _tauByVVLooseDeepTau2017v2VSjet = tau->tauID("byVVLooseDeepTau2017v2VSjet");
+            _tauByVLooseDeepTau2017v2VSjet = tau->tauID("byVLooseDeepTau2017v2VSjet");
+            _tauByLooseDeepTau2017v2VSjet = tau->tauID("byLooseDeepTau2017v2VSjet");
+            _tauByMediumDeepTau2017v2VSjet = tau->tauID("byMediumDeepTau2017v2VSjet");
+            _tauByTightDeepTau2017v2VSjet = tau->tauID("byTightDeepTau2017v2VSjet");
+            _tauByVTightDeepTau2017v2VSjet = tau->tauID("byVTightDeepTau2017v2VSjet");
+            _tauByVVTightDeepTau2017v2VSjet = tau->tauID("byVVTightDeepTau2017v2VSjet");
+
+            _tauByDeepTau2017v2VSeraw = tau->tauID("byDeepTau2017v2VSeraw");
+            _tauByVVVLooseDeepTau2017v2VSe = tau->tauID("byVVVLooseDeepTau2017v2VSe");
+            _tauByVVLooseDeepTau2017v2VSe = tau->tauID("byVVLooseDeepTau2017v2VSe");
+            _tauByVLooseDeepTau2017v2VSe = tau->tauID("byVLooseDeepTau2017v2VSe");
+            _tauByLooseDeepTau2017v2VSe = tau->tauID("byLooseDeepTau2017v2VSe");
+            _tauByMediumDeepTau2017v2VSe = tau->tauID("byMediumDeepTau2017v2VSe");
+            _tauByTightDeepTau2017v2VSe = tau->tauID("byTightDeepTau2017v2VSe");
+            _tauByVTightDeepTau2017v2VSe = tau->tauID("byVTightDeepTau2017v2VSe");
+            _tauByVVTightDeepTau2017v2VSe = tau->tauID("byVVTightDeepTau2017v2VSe");
+            
+            _tauByDeepTau2017v2VSmuraw = tau->tauID("byDeepTau2017v2VSmuraw");
+            _tauByVLooseDeepTau2017v2VSmu = tau->tauID("byVLooseDeepTau2017v2VSmu");
+            _tauByLooseDeepTau2017v2VSmu = tau->tauID("byLooseDeepTau2017v2VSmu");
+            _tauByMediumDeepTau2017v2VSmu = tau->tauID("byMediumDeepTau2017v2VSmu");
+            _tauByTightDeepTau2017v2VSmu = tau->tauID("byTightDeepTau2017v2VSmu");
+
 	    _tauProbeAgainstMuonLoose3 = tau->tauID("againstMuonLoose3");
 	    _tauProbeAgainstMuonTight3 = tau->tauID("againstMuonTight3");
 	    _tauProbeAgainstElectronVLooseMVA6 = tau->tauID("againstElectronVLooseMVA6");
@@ -772,7 +903,7 @@ void NtuplizerEG::analyze(const edm::Event& iEvent, const edm::EventSetup& eSetu
 	for (l1t::EGammaBxCollection::const_iterator bx0EGIt = L1EGHandle->begin(0); bx0EGIt != L1EGHandle->end(0) ; bx0EGIt++)
 	  {
 	    const float dR = deltaR(*eleProbe, *bx0EGIt);
-	    const l1t::EGamma& l1tEG = *bx0EGIt;	   
+	    const l1t::EGamma& l1tEG = *bx0EGIt;
 
 	    if (dR < minDR) //Uncomment for new match algo
 	      {
@@ -796,14 +927,14 @@ void NtuplizerEG::analyze(const edm::Event& iEvent, const edm::EventSetup& eSetu
 	if (L1EmuEGHandle.isValid())
 	  {
 	    minDR = 0.3;
-	
+
 	    for (l1t::EGammaBxCollection::const_iterator bx0EmuEGIt = L1EmuEGHandle->begin(0); bx0EmuEGIt != L1EmuEGHandle->end(0) ; bx0EmuEGIt++)
 	      {
 		const float dR = deltaR(*eleProbe, *bx0EmuEGIt);
 		const l1t::EGamma& l1tEmuEG = *bx0EmuEGIt;
-		
+
 		//cout<<"Emul EG, pT = "<<l1tEmuEG.pt()<<", eta = "<<l1tEmuEG.eta()<<", phi = "<<l1tEmuEG.phi()<<endl;
-		
+
 		if (dR < minDR) //Uncomment for new match algo
 		  {
 		    minDR = dR; //Uncomment for new match algo
@@ -817,11 +948,11 @@ void NtuplizerEG::analyze(const edm::Event& iEvent, const edm::EventSetup& eSetu
 		    _l1tEmuTowerIPhi = l1tEmuEG.towerIPhi();
 		    _l1tEmuRawEt     = l1tEmuEG.rawEt();
 		    _l1tEmuIsoEt     = l1tEmuEG.isoEt();
-		    
+
 		  }
 	      }
 	  }
-	
+
 	_eleProbePt = eleProbe->pt();
 	_eleProbeEta = eleProbe->eta();
 	_eleProbePhi = eleProbe->phi();
@@ -829,7 +960,7 @@ void NtuplizerEG::analyze(const edm::Event& iEvent, const edm::EventSetup& eSetu
 	_eleProbeCharge = eleProbe->charge();
         eleProbeSclEtaWidth_ = eleProbe->superCluster()->etaWidth();
         eleProbeSclPhiWidth_ = eleProbe->superCluster()->phiWidth();
-        
+
         // eleProbeEcalIso_ = eleProbe->ecalIso();
         // eleProbeEcalPFClusterIso_ = eleProbe->ecalPFClusterIso();
         // eleProbe...ID_ = eleProbe->electronID();
@@ -857,7 +988,7 @@ void NtuplizerEG::analyze(const edm::Event& iEvent, const edm::EventSetup& eSetu
                 }
             }
         }
- 
+
 	_eleProbeTriggerBits = _eleProbeTriggerBitSet.to_ulong();
 	_eleTagTriggerBits = _eleTagTriggerBitSet.to_ulong();
 	//std::cout << "++++++++++ FILL ++++++++++ with tau pT:" << _tauProbePt << "and elePt: " << _eleProbePt<< std::endl;
@@ -903,10 +1034,10 @@ bool NtuplizerEG::hasFilters(const pat::TriggerObjectStandAlone&  obj , const st
 
 
 
-bool NtuplizerEG::matchToTruth(const edm::Ptr<reco::GsfElectron> ele, 
+bool NtuplizerEG::matchToTruth(const edm::Ptr<pat::Electron> ele,
 			     const edm::Handle<edm::View<reco::GenParticle>> &prunedGenParticles){
 
-  // 
+  //
   // Explicit loop and geometric matching method
   //
 
