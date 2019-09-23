@@ -508,38 +508,36 @@ void NtuplizerEG::beginJob()
     _tree -> Branch("RunNumber",&_runNumber,"RunNumber/I");
     _tree -> Branch("lumi",&_lumi,"lumi/I");
 
-
-
-
-
     _tree -> Branch("tauPt",  &_tauProbePt,  "tauPt/F");
     _tree -> Branch("tauEta", &_tauProbeEta, "tauEta/F");
     _tree -> Branch("tauPhi", &_tauProbePhi, "tauPhi/F");
     _tree -> Branch("tauDM",  &_tauProbeDM,  "tauDM/I");
     _tree -> Branch("tauCharge",  &_tauProbeCharge,  "tauCharge/I");
     _tree -> Branch("tauTrkPt", &tauProbeTrkPt_, "tauTrkPt/F");
+    _tree -> Branch("decayModeFinding", &tauDecayModeFinding_, "decayModeFinding/O");
+    _tree -> Branch("decayModeFindingNewDMs", &tauDecayModeFindingNewDMs_, "decayModeFindingNewDMs/O");
 
-    _tree -> Branch("tauByLooseCombinedIsolationDeltaBetaCorr3Hits", &_tauProbeByLooseCombinedIsolationDeltaBetaCorr3Hits, "tauByLooseCombinedIsolationDeltaBetaCorr3Hits/O");
-    _tree -> Branch("tauByMediumCombinedIsolationDeltaBetaCorr3Hits", &_tauProbeByMediumCombinedIsolationDeltaBetaCorr3Hits, "tauByMediumCombinedIsolationDeltaBetaCorr3Hits/O");
-    _tree -> Branch("tauByTightCombinedIsolationDeltaBetaCorr3Hits", &_tauProbeByTightCombinedIsolationDeltaBetaCorr3Hits, "tauByTightCombinedIsolationDeltaBetaCorr3Hits/O");
+    _tree -> Branch("byLooseCombinedIsolationDeltaBetaCorr3Hits", &_tauProbeByLooseCombinedIsolationDeltaBetaCorr3Hits, "byLooseCombinedIsolationDeltaBetaCorr3Hits/O");
+    _tree -> Branch("byMediumCombinedIsolationDeltaBetaCorr3Hits", &_tauProbeByMediumCombinedIsolationDeltaBetaCorr3Hits, "byMediumCombinedIsolationDeltaBetaCorr3Hits/O");
+    _tree -> Branch("byTightCombinedIsolationDeltaBetaCorr3Hits", &_tauProbeByTightCombinedIsolationDeltaBetaCorr3Hits, "byTightCombinedIsolationDeltaBetaCorr3Hits/O");
 
-    _tree -> Branch("tauByIsolationMVArun2017v2DBoldDMwLTraw2017",  &_tauProbeByIsolationMVArun2017v2DBoldDMwLTraw2017,  "tauByIsolationMVArun2017v2DBoldDMwLTraw2017/F");
-    _tree -> Branch("tauByVVLooseIsolationMVArun2017v2DBoldDMwLT2017",  &_tauProbeByVVLooseIsolationMVArun2017v2DBoldDMwLT2017,  "tauByVVLooseIsolationMVArun2017v2DBoldDMwLT2017/O");
-    _tree -> Branch("tauByVLooseIsolationMVArun2017v2DBoldDMwLT2017",  &_tauProbeByVLooseIsolationMVArun2017v2DBoldDMwLT2017,  "tauByVLooseIsolationMVArun2017v2DBoldDMwLT2017/O");
-    _tree -> Branch("tauByLooseIsolationMVArun2017v2DBoldDMwLT2017",  &_tauProbeByLooseIsolationMVArun2017v2DBoldDMwLT2017,  "tauByLooseIsolationMVArun2017v2DBoldDMwLT2017/O");
-    _tree -> Branch("tauByMediumIsolationMVArun2017v2DBoldDMwLT2017",  &_tauProbeByMediumIsolationMVArun2017v2DBoldDMwLT2017,  "tauByMediumIsolationMVArun2017v2DBoldDMwLT2017/O");
-    _tree -> Branch("tauByTightIsolationMVArun2017v2DBoldDMwLT2017",  &_tauProbeByTightIsolationMVArun2017v2DBoldDMwLT2017,  "tauByTightIsolationMVArun2017v2DBoldDMwLT2017/O");
-    _tree -> Branch("tauByVTightIsolationMVArun2017v2DBoldDMwLT2017",  &_tauProbeByVTightIsolationMVArun2017v2DBoldDMwLT2017,  "tauByVTightIsolationMVArun2017v2DBoldDMwLT2017/O");
-    _tree -> Branch("tauByVVTightIsolationMVArun2017v2DBoldDMwLT2017",  &_tauProbeByVVTightIsolationMVArun2017v2DBoldDMwLT2017,  "tauByVVTightIsolationMVArun2017v2DBoldDMwLT2017/O");
+    _tree -> Branch("byIsolationMVArun2017v2DBoldDMwLTraw2017",  &_tauProbeByIsolationMVArun2017v2DBoldDMwLTraw2017,  "byIsolationMVArun2017v2DBoldDMwLTraw2017/F");
+    _tree -> Branch("byVVLooseIsolationMVArun2017v2DBoldDMwLT2017",  &_tauProbeByVVLooseIsolationMVArun2017v2DBoldDMwLT2017,  "byVVLooseIsolationMVArun2017v2DBoldDMwLT2017/O");
+    _tree -> Branch("byVLooseIsolationMVArun2017v2DBoldDMwLT2017",  &_tauProbeByVLooseIsolationMVArun2017v2DBoldDMwLT2017,  "byVLooseIsolationMVArun2017v2DBoldDMwLT2017/O");
+    _tree -> Branch("byLooseIsolationMVArun2017v2DBoldDMwLT2017",  &_tauProbeByLooseIsolationMVArun2017v2DBoldDMwLT2017,  "byLooseIsolationMVArun2017v2DBoldDMwLT2017/O");
+    _tree -> Branch("byMediumIsolationMVArun2017v2DBoldDMwLT2017",  &_tauProbeByMediumIsolationMVArun2017v2DBoldDMwLT2017,  "byMediumIsolationMVArun2017v2DBoldDMwLT2017/O");
+    _tree -> Branch("byTightIsolationMVArun2017v2DBoldDMwLT2017",  &_tauProbeByTightIsolationMVArun2017v2DBoldDMwLT2017,  "byTightIsolationMVArun2017v2DBoldDMwLT2017/O");
+    _tree -> Branch("byVTightIsolationMVArun2017v2DBoldDMwLT2017",  &_tauProbeByVTightIsolationMVArun2017v2DBoldDMwLT2017,  "byVTightIsolationMVArun2017v2DBoldDMwLT2017/O");
+    _tree -> Branch("byVVTightIsolationMVArun2017v2DBoldDMwLT2017",  &_tauProbeByVVTightIsolationMVArun2017v2DBoldDMwLT2017,  "byVVTightIsolationMVArun2017v2DBoldDMwLT2017/O");
 
-    _tree -> Branch("tauByIsolationMVArun2017v2DBnewDMwLTraw2017",  &_tauProbeByIsolationMVArun2017v2DBnewDMwLTraw2017,  "tauByIsolationMVArun2017v2DBnewDMwLTraw2017/F");
-    _tree -> Branch("tauByVVLooseIsolationMVArun2017v2DBnewDMwLT2017",  &_tauProbeByVVLooseIsolationMVArun2017v2DBnewDMwLT2017,  "tauByVVLooseIsolationMVArun2017v2DBnewDMwLT2017/O");
-    _tree -> Branch("tauByVLooseIsolationMVArun2017v2DBnewDMwLT2017",  &_tauProbeByVLooseIsolationMVArun2017v2DBnewDMwLT2017,  "tauByVLooseIsolationMVArun2017v2DBnewDMwLT2017/O");
-    _tree -> Branch("tauByLooseIsolationMVArun2017v2DBnewDMwLT2017",  &_tauProbeByLooseIsolationMVArun2017v2DBnewDMwLT2017,  "tauByLooseIsolationMVArun2017v2DBnewDMwLT2017/O");
-    _tree -> Branch("tauByMediumIsolationMVArun2017v2DBnewDMwLT2017",  &_tauProbeByMediumIsolationMVArun2017v2DBnewDMwLT2017,  "tauByMediumIsolationMVArun2017v2DBnewDMwLT2017/O");
-    _tree -> Branch("tauByTightIsolationMVArun2017v2DBnewDMwLT2017",  &_tauProbeByTightIsolationMVArun2017v2DBnewDMwLT2017,  "tauByTightIsolationMVArun2017v2DBnewDMwLT2017/O");
-    _tree -> Branch("tauByVTightIsolationMVArun2017v2DBnewDMwLT2017",  &_tauProbeByVTightIsolationMVArun2017v2DBnewDMwLT2017,  "tauByVTightIsolationMVArun2017v2DBnewDMwLT2017/O");
-    _tree -> Branch("tauByVVTightIsolationMVArun2017v2DBnewDMwLT2017",  &_tauProbeByVVTightIsolationMVArun2017v2DBnewDMwLT2017,  "tauByVVTightIsolationMVArun2017v2DBnewDMwLT2017/O");
+    _tree -> Branch("byIsolationMVArun2017v2DBnewDMwLTraw2017",  &_tauProbeByIsolationMVArun2017v2DBnewDMwLTraw2017,  "byIsolationMVArun2017v2DBnewDMwLTraw2017/F");
+    _tree -> Branch("byVVLooseIsolationMVArun2017v2DBnewDMwLT2017",  &_tauProbeByVVLooseIsolationMVArun2017v2DBnewDMwLT2017,  "byVVLooseIsolationMVArun2017v2DBnewDMwLT2017/O");
+    _tree -> Branch("byVLooseIsolationMVArun2017v2DBnewDMwLT2017",  &_tauProbeByVLooseIsolationMVArun2017v2DBnewDMwLT2017,  "byVLooseIsolationMVArun2017v2DBnewDMwLT2017/O");
+    _tree -> Branch("byLooseIsolationMVArun2017v2DBnewDMwLT2017",  &_tauProbeByLooseIsolationMVArun2017v2DBnewDMwLT2017,  "byLooseIsolationMVArun2017v2DBnewDMwLT2017/O");
+    _tree -> Branch("byMediumIsolationMVArun2017v2DBnewDMwLT2017",  &_tauProbeByMediumIsolationMVArun2017v2DBnewDMwLT2017,  "byMediumIsolationMVArun2017v2DBnewDMwLT2017/O");
+    _tree -> Branch("byTightIsolationMVArun2017v2DBnewDMwLT2017",  &_tauProbeByTightIsolationMVArun2017v2DBnewDMwLT2017,  "byTightIsolationMVArun2017v2DBnewDMwLT2017/O");
+    _tree -> Branch("byVTightIsolationMVArun2017v2DBnewDMwLT2017",  &_tauProbeByVTightIsolationMVArun2017v2DBnewDMwLT2017,  "byVTightIsolationMVArun2017v2DBnewDMwLT2017/O");
+    _tree -> Branch("byVVTightIsolationMVArun2017v2DBnewDMwLT2017",  &_tauProbeByVVTightIsolationMVArun2017v2DBnewDMwLT2017,  "byVVTightIsolationMVArun2017v2DBnewDMwLT2017/O");
 
     _tree->Branch("byDeepTau2017v2VSjetraw", &_tauByDeepTau2017v2VSjetraw, "byDeepTau2017v2VSjetraw/F");
     _tree->Branch("byVVVLooseDeepTau2017v2VSjet", &_tauByVVVLooseDeepTau2017v2VSjet, "byVVVLooseDeepTau2017v2VSjet/O");
@@ -567,13 +565,13 @@ void NtuplizerEG::beginJob()
     _tree->Branch("byMediumDeepTau2017v2VSmu", &_tauByMediumDeepTau2017v2VSmu, "byMediumDeepTau2017v2VSmu/O");
     _tree->Branch("byTightDeepTau2017v2VSmu", &_tauByTightDeepTau2017v2VSmu, "byTightDeepTau2017v2VSmu/O");
 
-    _tree -> Branch("tauAgainstMuonLoose3", &_tauProbeAgainstMuonLoose3, "tauAgainstMuonLoose3/O");
-    _tree -> Branch("tauAgainstMuonTight3", &_tauProbeAgainstMuonTight3, "tauAgainstMuonTight3/O");
-    _tree -> Branch("tauAgainstElectronVLooseMVA6", &_tauProbeAgainstElectronVLooseMVA6, "tauAgainstElectronVLooseMVA6/O");
-    _tree -> Branch("tauAgainstElectronLooseMVA6", &_tauProbeAgainstElectronLooseMVA6, "tauAgainstElectronLooseMVA6/O");
-    _tree -> Branch("tauAgainstElectronMediumMVA6", &_tauProbeAgainstElectronMediumMVA6, "tauAgainstElectronMediumMVA6/O");
-    _tree -> Branch("tauAgainstElectronTightMVA6", &_tauProbeAgainstElectronTightMVA6, "tauAgainstElectronTightMVA6/O");
-    _tree -> Branch("tauAgainstElectronVTightMVA6", &_tauProbeAgainstElectronVTightMVA6, "tauAgainstElectronVTightMVA6/O");
+    _tree -> Branch("againstMuonLoose3", &_tauProbeAgainstMuonLoose3, "againstMuonLoose3/O");
+    _tree -> Branch("againstMuonTight3", &_tauProbeAgainstMuonTight3, "againstMuonTight3/O");
+    _tree -> Branch("againstElectronVLooseMVA6", &_tauProbeAgainstElectronVLooseMVA6, "againstElectronVLooseMVA6/O");
+    _tree -> Branch("againstElectronLooseMVA6", &_tauProbeAgainstElectronLooseMVA6, "againstElectronLooseMVA6/O");
+    _tree -> Branch("againstElectronMediumMVA6", &_tauProbeAgainstElectronMediumMVA6, "againstElectronMediumMVA6/O");
+    _tree -> Branch("againstElectronTightMVA6", &_tauProbeAgainstElectronTightMVA6, "againstElectronTightMVA6/O");
+    _tree -> Branch("againstElectronVTightMVA6", &_tauProbeAgainstElectronVTightMVA6, "againstElectronVTightMVA6/O");
 
     _tree -> Branch("eleProbeTriggerBits", &_eleProbeTriggerBits, "eleProbeTriggerBits/l");
     _tree -> Branch("eleTagTriggerBits", &_eleTagTriggerBits, "eleTagTriggerBits/l");
