@@ -50,8 +50,8 @@ goodTaus = cms.EDFilter("PATTauRefSelector",
                 'pt > 40 && abs(eta) < 2.1 ' #kinematics
                 '&& abs(charge) > 0 && abs(charge) < 2 ' #sometimes 2 prongs have charge != 1
                 '&& (tauID("decayModeFinding") > 0.5 || tauID("decayModeFindingNewDMs") > 0.5)' # tau ID
-                '&& (tauID("byVVLooseIsolationMVArun2017v2DBoldDMwLT2017") > 0.5 || tauID("byVVVLooseDeepTau2017v2VSjet") > 0.5)'
-                '&& (tauID("againstMuonLoose3") > 0.5 || tauID("byVLooseDeepTau2017v2VSmu") > 0.5)' # anti Muon loose
+                '&& (tauID("byVVLooseIsolationMVArun2017v2DBoldDMwLT2017") > 0.5 || tauID("byVVVLooseDeepTau2017v2p1VSjet") > 0.5)'
+                '&& (tauID("againstMuonLoose3") > 0.5 || tauID("byVLooseDeepTau2017v2p1VSmu") > 0.5)' # anti Muon loose
         ),
         filter = cms.bool(True)
 )

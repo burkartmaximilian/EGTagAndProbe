@@ -57,7 +57,7 @@ import RecoTauTag.RecoTau.tools.runTauIdMVA as idemb
 na = idemb.TauIDEmbedder(process, cms,
         debug=True,
         updatedTauName="NewTauIDsEmbedded",
-        toKeep=["2017v2", "newDM2017v2", "deepTau2017v2"]
+        toKeep=["2017v2", "newDM2017v2", "deepTau2017v2p1"]
 )
 na.runTauID()
 
