@@ -70,7 +70,7 @@ if not isMC: # will use 80X
     process.load('EGTagAndProbe.EGTagAndProbe.tagAndProbe_2018_cff')
     process.source = cms.Source("PoolSource",
         fileNames = cms.untracked.vstring(
-            '/store/data/Run2017C/SingleElectron/MINIAOD/17Nov2017-v1/00000/0009989A-35FF-E711-BBE2-008CFAC93C14.root'
+            '/store/data/Run2018C/EGamma/MINIAOD/17Sep2018-v1/70000/520039D5-9669-0C4F-A882-2FDBC4B0282E.root'
         ),
     )
 else:

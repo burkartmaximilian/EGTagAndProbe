@@ -3,7 +3,7 @@ import FWCore.PythonUtilities.LumiList as LumiList
 import FWCore.ParameterSet.Config as cms
 process = cms.Process("TagAndProbe")
 
-isMC = True
+isMC = False
 isMINIAOD = True
 
 process.load("Configuration.StandardSequences.FrontierConditions_GlobalTag_cff")
@@ -65,12 +65,12 @@ na.runTauID()
 
 if not isMC: # will use 80X
     from Configuration.AlCa.autoCond import autoCond
-    process.GlobalTag.globaltag = '102X_dataRun2_Sep2018ABC_v2'
-    # process.GlobalTag.globaltag = '102X_dataRun2_Prompt_v13'
+    # process.GlobalTag.globaltag = '102X_dataRun2_Sep2018ABC_v2'
+    process.GlobalTag.globaltag = '102X_dataRun2_Prompt_v13'
     process.load('EGTagAndProbe.EGTagAndProbe.tagAndProbe_2018_cff')
     process.source = cms.Source("PoolSource",
         fileNames = cms.untracked.vstring(
-            '/store/data/Run2018C/EGamma/MINIAOD/17Sep2018-v1/70000/520039D5-9669-0C4F-A882-2FDBC4B0282E.root'
+            '/store/data/Run2017C/SingleElectron/MINIAOD/17Nov2017-v1/00000/0009989A-35FF-E711-BBE2-008CFAC93C14.root'
         ),
     )
 else:
